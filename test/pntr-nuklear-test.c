@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <assert.h>
 
-#define PNTR_NUKLEAR_IMPLEMENTATION
-#include "pntr-nuklear.h"
-
 #define PNTR_DISABLE_MATH
 #define PNTR_IMPLEMENTATION
 #define PNTR_ENABLE_DEFAULT_FONT
 #include "pntr.h"
+
+#define PNTR_NUKLEAR_IMPLEMENTATION
+#include "pntr-nuklear.h"
 
 int main() {
 

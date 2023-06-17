@@ -1,6 +1,6 @@
 /**********************************************************************************************
 *
-*   pntr-physfs - Nuklear immediate-mode graphical user interface for pntr.
+*   pntr-nuklear - Nuklear immediate-mode graphical user interface for pntr.
 *
 *   Copyright 2023 Rob Loach (@RobLoach)
 *
@@ -10,7 +10,7 @@
 *
 *   LICENSE: zlib/libpng
 *
-*   pntr-physfs is licensed under an unmodified zlib/libpng license, which is an OSI-certified,
+*   pntr-nuklear is licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software:
 *
 *   This software is provided "as-is", without any express or implied warranty. In no event
@@ -43,8 +43,6 @@
 #define NK_INCLUDE_STANDARD_BOOL
 
 #include "nuklear.h"
-
-#include "pntr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,6 +100,7 @@ PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
     if (font == NULL) {
         return NULL;
     }
+
     struct nk_context* ctx = (struct nk_context*)PNTR_MALLOC(sizeof(struct nk_context));
     struct nk_user_font* userFont = (struct nk_user_font*)PNTR_MALLOC(sizeof(struct nk_user_font));
 
@@ -203,7 +202,6 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 // else {
                     //DrawRectangleLinesEx(rect, r->line_thickness, color);
                     pntr_draw_rectangle(dst, r->x, r->y, r->w, r->h, r->line_thickness, color);
-
                 //}
             } break;
 
