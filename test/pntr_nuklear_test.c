@@ -7,10 +7,9 @@
 #include "pntr.h"
 
 #define PNTR_NUKLEAR_IMPLEMENTATION
-#include "pntr-nuklear.h"
+#include "pntr_nuklear.h"
 
 int main() {
-
     pntr_font* font = pntr_load_font_default();
     assert(font);
 
@@ -28,7 +27,8 @@ int main() {
     static int op = EASY;
     static float value = 0.6f;
     static int i =  20;
-    if (nk_begin(ctx, "pntr-nuklear Example", nk_rect(25, 25, 300, 200),
+
+    if (nk_begin(ctx, "pntr_nuklear Example", nk_rect(10, 10, 300, 200),
         NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_CLOSABLE)) {
         nk_layout_row_static(ctx, 30, 80, 1);
         if (nk_button_label(ctx, "Button")) {
@@ -53,14 +53,14 @@ int main() {
     nk_end(ctx);
 
     // Build a screen
-    pntr_image* image = pntr_gen_image_color(350, 250, PNTR_RAYWHITE);
+    pntr_image* image = pntr_gen_image_color(320, 220, PNTR_RAYWHITE);
     assert(image);
 
     // Render to the image
     pntr_draw_nuklear(image, ctx);
 
     // Save the image
-    pntr_save_image(image, "output.png");
+    assert(pntr_save_image(image, "pntr_nuklear_test.png"));
 
     // Unload
     pntr_unload_font(font);
