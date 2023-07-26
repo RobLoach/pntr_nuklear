@@ -222,8 +222,6 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 pntr_color top = pntr_color_from_nk_color(rectangle->top);
                 pntr_color bottom = pntr_color_from_nk_color(rectangle->bottom);
                 pntr_color right = pntr_color_from_nk_color(rectangle->right);
-
-                // TODO: NK_COMMAND_RECT_MULTI_COLOR: Are these color points correct?
                 pntr_draw_rectangle_gradient_rec(dst, rect, left, top, bottom, right);
             } break;
 
