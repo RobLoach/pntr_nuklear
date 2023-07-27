@@ -41,6 +41,7 @@
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
 #define NK_INCLUDE_COMMAND_USERDATA
 #define NK_INCLUDE_STANDARD_BOOL
+#define NK_KEYSTATE_BASED_INPUT
 
 #ifndef PNTR_NUKLEAR_NUKLEAR_H
 #define PNTR_NUKLEAR_NUKLEAR_H "nuklear.h"
@@ -55,12 +56,21 @@ extern "C" {
     #define PNTR_NUKLEAR_API PNTR_API
 #endif
 
+#ifdef PNTR_APP_API
+#define PNTR_APP_EVENT pntr_app_event
+#else
+#define PNTR_APP_EVENT void
+#endif
+
 PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font);
 PNTR_NUKLEAR_API void pntr_unload_nuklear(struct nk_context* ctx);
+PNTR_NUKLEAR_API void pntr_update_nuklear(struct nk_context* ctx, PNTR_APP_EVENT* event);
 PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx);
 PNTR_NUKLEAR_API struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle rectangle);
 PNTR_NUKLEAR_API pntr_color pntr_color_from_nk_color(struct nk_color color);
+PNTR_NUKLEAR_API struct nk_color pntr_color_to_nk_color(pntr_color color);
 PNTR_NUKLEAR_API pntr_vector pntr_vector_from_nk_vec2i(struct nk_vec2i vector);
+PNTR_NUKLEAR_API pntr_color pntr_color_from_nk_colorf(struct nk_colorf color);
 
 #ifdef __cplusplus
 }
@@ -73,8 +83,7 @@ PNTR_NUKLEAR_API pntr_vector pntr_vector_from_nk_vec2i(struct nk_vec2i vector);
 #define PNTR_NUKLEAR_IMPLEMENTATION_ONCE
 
 #define NK_IMPLEMENTATION
-#define NK_KEYSTATE_BASED_INPUT
-#include "nuklear.h"
+#include PNTR_NUKLEAR_NUKLEAR_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -133,6 +142,75 @@ PNTR_NUKLEAR_API void pntr_unload_nuklear(struct nk_context* ctx) {
 
     // Unload the nuklear context.
     nk_free(ctx);
+}
+
+PNTR_NUKLEAR_API void pntr_update_nuklear(struct nk_context* ctx, PNTR_APP_EVENT* event) {
+    nk_input_begin(ctx);
+#ifdef PNTR_APP_API
+    switch (event->type) {
+        case PNTR_APP_EVENTTYPE_KEY_DOWN:
+        case PNTR_APP_EVENTTYPE_KEY_UP: {
+            switch (event->key) {
+                case PNTR_APP_KEY_LEFT_SHIFT: nk_input_key(ctx, NK_KEY_SHIFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                case PNTR_APP_KEY_RIGHT_SHIFT: nk_input_key(ctx, NK_KEY_SHIFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                case PNTR_APP_KEY_LEFT_CONTROL: nk_input_key(ctx, NK_KEY_CTRL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                case PNTR_APP_KEY_RIGHT_CONTROL: nk_input_key(ctx, NK_KEY_CTRL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                case PNTR_APP_KEY_DELETE: nk_input_key(ctx, NK_KEY_DEL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                case PNTR_APP_KEY_ENTER: nk_input_key(ctx, NK_KEY_ENTER, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                case PNTR_APP_KEY_TAB: nk_input_key(ctx, NK_KEY_TAB, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                case PNTR_APP_KEY_BACKSPACE: nk_input_key(ctx, NK_KEY_BACKSPACE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                //case COPY: nk_input_key(ctx, NK_KEY_COPY, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                //case CUT: nk_input_key(ctx, NK_KEY_CUT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                //case PASTE: nk_input_key(ctx, NK_KEY_PASTE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                case PNTR_APP_KEY_UP: nk_input_key(ctx, NK_KEY_UP, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                case PNTR_APP_KEY_DOWN: nk_input_key(ctx, NK_KEY_DOWN, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                case PNTR_APP_KEY_LEFT: nk_input_key(ctx, NK_KEY_LEFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                case PNTR_APP_KEY_RIGHT: nk_input_key(ctx, NK_KEY_RIGHT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                case PNTR_APP_KEY_INSERT: nk_input_key(ctx, NK_KEY_TEXT_INSERT_MODE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                //case TEXT_REPLACE_MODE: nk_input_key(ctx, NK_KEY_TEXT_REPLACE_MODE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                //case TEXT_RESET_MODE: nk_input_key(ctx, NK_KEY_TEXT_RESET_MODE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                case PNTR_APP_KEY_HOME: nk_input_key(ctx, NK_KEY_TEXT_LINE_START, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                case PNTR_APP_KEY_END: nk_input_key(ctx, NK_KEY_TEXT_LINE_END, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                //case TEXT_START: nk_input_key(ctx, NK_KEY_TEXT_START, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                //case TEXT_END: nk_input_key(ctx, NK_KEY_TEXT_END, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                //case TEXT_UNDO: nk_input_key(ctx, NK_KEY_TEXT_UNDO, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                //case TEXT_REDO: nk_input_key(ctx, NK_KEY_TEXT_REDO, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                //case TEXT_SELECT_ALL: nk_input_key(ctx, NK_KEY_TEXT_SELECT_ALL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                //case TEXT_WORD_LEFT: nk_input_key(ctx, NK_KEY_TEXT_WORD_LEFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                //case TEXT_WORD_RIGHT: nk_input_key(ctx, NK_KEY_TEXT_WORD_RIGHT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                //case SCROLL_START: nk_input_key(ctx, NK_KEY_SCROLL_START, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                //case SCROLL_END: nk_input_key(ctx, NK_KEY_SCROLL_END, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                case PNTR_APP_KEY_PAGE_DOWN: nk_input_key(ctx, NK_KEY_SCROLL_DOWN, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+                case PNTR_APP_KEY_PAGE_UP: nk_input_key(ctx, NK_KEY_SCROLL_UP, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
+            }
+
+            if (event->type == PNTR_APP_EVENTTYPE_KEY_DOWN) {
+                nk_input_unicode(ctx, event->key);
+            }
+        }
+        break;
+        case PNTR_APP_EVENTTYPE_MOUSE_MOVE: {
+            nk_input_motion(ctx, event->mouseX, event->mouseY);
+        }
+        break;
+        case PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN:
+        case PNTR_APP_EVENTTYPE_MOUSE_BUTTON_UP: {
+            enum nk_buttons button = NK_BUTTON_MAX;
+            switch (event->mouseButton) {
+                case PNTR_APP_MOUSE_BUTTON_LEFT: button = NK_BUTTON_LEFT; break;
+                case PNTR_APP_MOUSE_BUTTON_RIGHT: button = NK_BUTTON_RIGHT; break;
+                case PNTR_APP_MOUSE_BUTTON_MIDDLE: button = NK_BUTTON_MIDDLE; break;
+            }
+            if (button != NK_BUTTON_MAX) {
+                nk_input_button(ctx, button, event->mouseX, event->mouseY,
+                    event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN ? nk_true : nk_false
+                );
+            }
+        }
+        break;
+    }
+#endif  // PNTR_APP_API
+    nk_input_end(ctx);
 }
 
 PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx) {
@@ -361,10 +439,32 @@ PNTR_NUKLEAR_API inline pntr_color pntr_color_from_nk_color(struct nk_color colo
     return pntr_new_color(color.r, color.g, color.b, color.a);
 }
 
+PNTR_NUKLEAR_API struct nk_color pntr_color_to_nk_color(pntr_color color) {
+    return nk_rgba(color.r, color.g, color.b, color.a);
+}
+
+PNTR_NUKLEAR_API inline pntr_color pntr_color_from_nk_colorf(struct nk_colorf color) {
+    return pntr_new_color(
+        (unsigned char)(color.r * 255.0f),
+        (unsigned char)(color.g * 255.0f),
+        (unsigned char)(color.b * 255.0f),
+        (unsigned char)(color.a * 255.0f)
+    );
+}
+
+PNTR_NUKLEAR_API struct nk_colorf pntr_color_to_nk_colorf(pntr_color color) {
+    struct nk_colorf out;
+    out.r = (float)color.r / 255.0f;
+    out.g = (float)color.g / 255.0f;
+    out.b = (float)color.b / 255.0f;
+    out.a = (float)color.a / 255.0f;
+    return out;
+}
+
 PNTR_NUKLEAR_API inline pntr_vector pntr_vector_from_nk_vec2i(struct nk_vec2i vector) {
     return PNTR_CLITERAL(pntr_vector) {
-        (int)vector.x,
-        (int)vector.y
+        vector.x,
+        vector.y
     };
 }
 
