@@ -382,17 +382,18 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
 
             case NK_COMMAND_POLYLINE: {
-                // // TODO: Polygon expects counter clockwise order
-                // const struct nk_command_polyline *p = (const struct nk_command_polyline *)cmd;
-                // pntr_color color = pntr_color_from_nk_color(p->color);
-                // struct pntr_vector* points = (struct pntr_vector*)MemAlloc(p->point_count * (unsigned short)sizeof(pntr_vector));
-                // unsigned short i;
-                // for (i = 0; i < p->point_count; i++) {
-                //     points[i].x = p->points[i].x;
-                //     points[i].y = p->points[i].y;
-                // }
-                // DrawTriangleStrip(points, p->point_count, color);
-                // MemFree(points);
+                // TODO: Confirm Polyline works
+                const struct nk_command_polyline *p = (const struct nk_command_polyline *)cmd;
+                pntr_color color = pntr_color_from_nk_color(p->color);
+                struct pntr_vector* points = (struct pntr_vector*)pntr_load_memory(sizeof(pntr_vector) * (size_t)p->point_count);
+
+                for (unsigned short i = 0; i < p->point_count; i++) {
+                    points[i].x = (int)p->points[i].x;
+                    points[i].y = (int)p->points[i].y;
+                }
+
+                pntr_draw_polyline(dst, points, (int)p->point_count, color);
+                pntr_unload_memory(points);
             } break;
 
             case NK_COMMAND_TEXT: {
