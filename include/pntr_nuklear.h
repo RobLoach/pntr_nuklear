@@ -151,41 +151,42 @@ PNTR_NUKLEAR_API void pntr_update_nuklear(struct nk_context* ctx, PNTR_APP_EVENT
         case PNTR_APP_EVENTTYPE_KEY_DOWN:
         case PNTR_APP_EVENTTYPE_KEY_UP: {
             switch (event->key) {
-                case PNTR_APP_KEY_LEFT_SHIFT: nk_input_key(ctx, NK_KEY_SHIFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                case PNTR_APP_KEY_RIGHT_SHIFT: nk_input_key(ctx, NK_KEY_SHIFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                case PNTR_APP_KEY_LEFT_CONTROL: nk_input_key(ctx, NK_KEY_CTRL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                case PNTR_APP_KEY_RIGHT_CONTROL: nk_input_key(ctx, NK_KEY_CTRL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                case PNTR_APP_KEY_DELETE: nk_input_key(ctx, NK_KEY_DEL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                case PNTR_APP_KEY_ENTER: nk_input_key(ctx, NK_KEY_ENTER, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                case PNTR_APP_KEY_TAB: nk_input_key(ctx, NK_KEY_TAB, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                case PNTR_APP_KEY_BACKSPACE: nk_input_key(ctx, NK_KEY_BACKSPACE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                //case COPY: nk_input_key(ctx, NK_KEY_COPY, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                //case CUT: nk_input_key(ctx, NK_KEY_CUT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                //case PASTE: nk_input_key(ctx, NK_KEY_PASTE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                case PNTR_APP_KEY_UP: nk_input_key(ctx, NK_KEY_UP, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                case PNTR_APP_KEY_DOWN: nk_input_key(ctx, NK_KEY_DOWN, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                case PNTR_APP_KEY_LEFT: nk_input_key(ctx, NK_KEY_LEFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                case PNTR_APP_KEY_RIGHT: nk_input_key(ctx, NK_KEY_RIGHT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                case PNTR_APP_KEY_INSERT: nk_input_key(ctx, NK_KEY_TEXT_INSERT_MODE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                //case TEXT_REPLACE_MODE: nk_input_key(ctx, NK_KEY_TEXT_REPLACE_MODE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                //case TEXT_RESET_MODE: nk_input_key(ctx, NK_KEY_TEXT_RESET_MODE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                case PNTR_APP_KEY_HOME: nk_input_key(ctx, NK_KEY_TEXT_LINE_START, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                case PNTR_APP_KEY_END: nk_input_key(ctx, NK_KEY_TEXT_LINE_END, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                //case TEXT_START: nk_input_key(ctx, NK_KEY_TEXT_START, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                //case TEXT_END: nk_input_key(ctx, NK_KEY_TEXT_END, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                //case TEXT_UNDO: nk_input_key(ctx, NK_KEY_TEXT_UNDO, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                //case TEXT_REDO: nk_input_key(ctx, NK_KEY_TEXT_REDO, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                //case TEXT_SELECT_ALL: nk_input_key(ctx, NK_KEY_TEXT_SELECT_ALL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                //case TEXT_WORD_LEFT: nk_input_key(ctx, NK_KEY_TEXT_WORD_LEFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                //case TEXT_WORD_RIGHT: nk_input_key(ctx, NK_KEY_TEXT_WORD_RIGHT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                //case SCROLL_START: nk_input_key(ctx, NK_KEY_SCROLL_START, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                //case SCROLL_END: nk_input_key(ctx, NK_KEY_SCROLL_END, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                case PNTR_APP_KEY_PAGE_DOWN: nk_input_key(ctx, NK_KEY_SCROLL_DOWN, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-                case PNTR_APP_KEY_PAGE_UP: nk_input_key(ctx, NK_KEY_SCROLL_UP, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); return;
-            }
-
-            if (event->type == PNTR_APP_EVENTTYPE_KEY_DOWN) {
-                nk_input_unicode(ctx, event->key);
+                case PNTR_APP_KEY_LEFT_SHIFT:
+                case PNTR_APP_KEY_RIGHT_SHIFT: nk_input_key(ctx, NK_KEY_SHIFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_LEFT_CONTROL:
+                case PNTR_APP_KEY_RIGHT_CONTROL: nk_input_key(ctx, NK_KEY_CTRL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_DELETE: nk_input_key(ctx, NK_KEY_DEL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_ENTER: nk_input_key(ctx, NK_KEY_ENTER, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_TAB: nk_input_key(ctx, NK_KEY_TAB, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_BACKSPACE: nk_input_key(ctx, NK_KEY_BACKSPACE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case COPY: nk_input_key(ctx, NK_KEY_COPY, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case CUT: nk_input_key(ctx, NK_KEY_CUT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case PASTE: nk_input_key(ctx, NK_KEY_PASTE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_UP: nk_input_key(ctx, NK_KEY_UP, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_DOWN: nk_input_key(ctx, NK_KEY_DOWN, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_LEFT: nk_input_key(ctx, NK_KEY_LEFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_RIGHT: nk_input_key(ctx, NK_KEY_RIGHT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_INSERT: nk_input_key(ctx, NK_KEY_TEXT_INSERT_MODE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_REPLACE_MODE: nk_input_key(ctx, NK_KEY_TEXT_REPLACE_MODE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_RESET_MODE: nk_input_key(ctx, NK_KEY_TEXT_RESET_MODE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_HOME: nk_input_key(ctx, NK_KEY_TEXT_LINE_START, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_END: nk_input_key(ctx, NK_KEY_TEXT_LINE_END, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_START: nk_input_key(ctx, NK_KEY_TEXT_START, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_END: nk_input_key(ctx, NK_KEY_TEXT_END, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_UNDO: nk_input_key(ctx, NK_KEY_TEXT_UNDO, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_REDO: nk_input_key(ctx, NK_KEY_TEXT_REDO, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_SELECT_ALL: nk_input_key(ctx, NK_KEY_TEXT_SELECT_ALL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_WORD_LEFT: nk_input_key(ctx, NK_KEY_TEXT_WORD_LEFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_WORD_RIGHT: nk_input_key(ctx, NK_KEY_TEXT_WORD_RIGHT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case SCROLL_START: nk_input_key(ctx, NK_KEY_SCROLL_START, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case SCROLL_END: nk_input_key(ctx, NK_KEY_SCROLL_END, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_PAGE_DOWN: nk_input_key(ctx, NK_KEY_SCROLL_DOWN, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_PAGE_UP: nk_input_key(ctx, NK_KEY_SCROLL_UP, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                default:
+                    if (event->type == PNTR_APP_EVENTTYPE_KEY_DOWN) {
+                        nk_input_unicode(ctx, event->key);
+                    }
+                    break;
             }
         }
         break;
@@ -266,15 +267,6 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 const struct nk_command_rect *r = (const struct nk_command_rect *)cmd;
                 pntr_color color = pntr_color_from_nk_color(r->color);
                 pntr_draw_rectangle(dst, (int)r->x, (int)r->y, (int)r->w, (int)r->h, (int)r->line_thickness, color);
-
-                //Rectangle rect = {r->x, r->y, r->w, r->h};
-                //float roundness = r->rounding * RAYLIB_NUKLEAR_ROUNDING_SCALE / (rect.width + rect.height);
-                // if (roundness > 0.0f) {
-                //     DrawRectangleRoundedLines(rect, roundness, RAYLIB_NUKLEAR_DEFAULT_ARC_SEGMENTS, r->line_thickness, color);
-                // }
-                // else {
-                    //DrawRectangleLinesEx(rect, r->line_thickness, color);
-                //}
             } break;
 
             case NK_COMMAND_RECT_FILLED: {
@@ -282,15 +274,6 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 const struct nk_command_rect_filled *r = (const struct nk_command_rect_filled *)cmd;
                 pntr_color color = pntr_color_from_nk_color(r->color);
                 pntr_draw_rectangle_fill(dst, r->x, r->y, r->w, r->h, color);
-
-                //Rectangle rect = {r->x, r->y, r->w, r->h};
-                // float roundness = r->rounding * RAYLIB_NUKLEAR_ROUNDING_SCALE / (rect.width + rect.height);
-                // if (roundness > 0.0f) {
-                //     DrawRectangleRounded(rect, roundness, RAYLIB_NUKLEAR_DEFAULT_ARC_SEGMENTS, color);
-                // }
-                // else {
-                    //DrawRectangleRec(rect, color);
-                //}
             } break;
 
             case NK_COMMAND_RECT_MULTI_COLOR: {
@@ -327,18 +310,31 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
             case NK_COMMAND_ARC: {
                 // TODO: Add NK_COMMAND_ARC
-                // const struct nk_command_arc *a = (const struct nk_command_arc*)cmd;
-                // pntr_color color = pntr_color_from_nk_color(a->color);
-                // pntr_vector center = {a->cx, a->cy};
-                // DrawRingLines(center, 0, a->r, a->a[0] * RAD2DEG - 45, a->a[1] * RAD2DEG - 45, RAYLIB_NUKLEAR_DEFAULT_ARC_SEGMENTS, color);
+                // TODO: Add line thickness to arc
+                const struct nk_command_arc *a = (const struct nk_command_arc*)cmd;
+                pntr_color color = pntr_color_from_nk_color(a->color);
+
+                #ifndef PNTR_NUKLEAR_ARC_SEGMENTS
+                    #define PNTR_NUKLEAR_ARC_SEGMENTS 20
+                #endif
+                float startAngle = a->a[0] * PNTR_RAD2DEG - 45;
+                float endAngle = a->a[1] * PNTR_RAD2DEG - 45;
+
+                pntr_draw_arc(dst, (int)a->cx, (int)a->cy, a->r, startAngle, endAngle, PNTR_NUKLEAR_ARC_SEGMENTS, color);
             } break;
 
             case NK_COMMAND_ARC_FILLED: {
                 // TODO: Add NK_COMMAND_ARC_FILLED
-                // const struct nk_command_arc_filled *a = (const struct nk_command_arc_filled*)cmd;
-                // pntr_color color = pntr_color_from_nk_color(a->color);
-                // pntr_vector center = {a->cx, a->cy};
-                // DrawRing(center, 0, a->r, a->a[0] * RAD2DEG - 45, a->a[1] * RAD2DEG - 45, RAYLIB_NUKLEAR_DEFAULT_ARC_SEGMENTS, color);
+                const struct nk_command_arc_filled *a = (const struct nk_command_arc_filled*)cmd;
+                pntr_color color = pntr_color_from_nk_color(a->color);
+
+                #ifndef PNTR_NUKLEAR_ARC_FILL_SEGMENTS
+                    #define PNTR_NUKLEAR_ARC_FILL_SEGMENTS 20
+                #endif
+                float startAngle = a->a[0] * PNTR_RAD2DEG - 45;
+                float endAngle = a->a[1] * PNTR_RAD2DEG - 45;
+
+                pntr_draw_arc_fill(dst, (int)a->cx, (int)a->cy, a->r, startAngle, endAngle, PNTR_NUKLEAR_ARC_SEGMENTS, color);
             } break;
 
             case NK_COMMAND_TRIANGLE: {
@@ -412,9 +408,8 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
 
             case NK_COMMAND_CUSTOM: {
-                // TraceLog(LOG_WARNING, "NUKLEAR: Unverified custom callback implementation NK_COMMAND_CUSTOM");
-                // const struct nk_command_custom *custom = (const struct nk_command_custom *)cmd;
-                // custom->callback(NULL, (short)(custom->x), (short)(custom->y), (unsigned short)(custom->w), (unsigned short)(custom->h), custom->callback_data);
+                const struct nk_command_custom *custom = (const struct nk_command_custom *)cmd;
+                custom->callback(NULL, (short)(custom->x), (short)(custom->y), (unsigned short)(custom->w), (unsigned short)(custom->h), custom->callback_data);
             } break;
 
             default: {
