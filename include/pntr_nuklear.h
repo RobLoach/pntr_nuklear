@@ -128,6 +128,9 @@ PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
         return NULL;
     }
 
+    // Let Nuklear know that it may now process events.
+    nk_input_begin(ctx);
+
     return ctx;
 }
 
@@ -136,6 +139,10 @@ PNTR_NUKLEAR_API void pntr_unload_nuklear(struct nk_context* ctx) {
     if (ctx == NULL) {
         return;
     }
+
+    // Clear up anything remaining from the context.
+    nk_input_end(ctx);
+    nk_clear(ctx);
 
     // Clear the user font.
     pntr_unload_memory((void*)ctx->style.font);
@@ -148,10 +155,14 @@ PNTR_NUKLEAR_API void pntr_unload_nuklear(struct nk_context* ctx) {
     // Unload the nuklear context.
     nk_free(ctx);
 }
+#include <stdio.h>
 
 PNTR_NUKLEAR_API void pntr_update_nuklear(struct nk_context* ctx, PNTR_APP_EVENT* event) {
-    nk_input_begin(ctx);
 #ifdef PNTR_APP_API
+    if (ctx == NULL || event == NULL) {
+        return;
+    }
+
     switch (event->type) {
         case PNTR_APP_EVENTTYPE_KEY_DOWN:
         case PNTR_APP_EVENTTYPE_KEY_UP: {
@@ -195,10 +206,13 @@ PNTR_NUKLEAR_API void pntr_update_nuklear(struct nk_context* ctx, PNTR_APP_EVENT
             }
         }
         break;
+
         case PNTR_APP_EVENTTYPE_MOUSE_MOVE: {
+            // printf("Mouse Move: %d, %d\n" , event->mouseX, event->mouseY);
             nk_input_motion(ctx, event->mouseX, event->mouseY);
         }
         break;
+
         case PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN:
         case PNTR_APP_EVENTTYPE_MOUSE_BUTTON_UP: {
             enum nk_buttons button = NK_BUTTON_MAX;
@@ -208,6 +222,7 @@ PNTR_NUKLEAR_API void pntr_update_nuklear(struct nk_context* ctx, PNTR_APP_EVENT
                 case PNTR_APP_MOUSE_BUTTON_MIDDLE: button = NK_BUTTON_MIDDLE; break;
             }
             if (button != NK_BUTTON_MAX) {
+                // printf("Mouse Event: %s\n" , event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN ? "Pushed" : "Releasde");
                 nk_input_button(ctx, button, event->mouseX, event->mouseY,
                     event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN ? nk_true : nk_false
                 );
@@ -216,16 +231,18 @@ PNTR_NUKLEAR_API void pntr_update_nuklear(struct nk_context* ctx, PNTR_APP_EVENT
         break;
     }
 #endif  // PNTR_APP_API
-    nk_input_end(ctx);
 }
 
 PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx) {
-    if (ctx == NULL || dst == NULL) {
+    if (dst == NULL || ctx == NULL) {
         return;
     }
 
-    const struct nk_command *cmd;
+    // Finish processing events as we'll now draw the context.
+    nk_input_end(ctx);
 
+    // Iterate through each drawing command.
+    const struct nk_command *cmd;
     nk_foreach(cmd, ctx) {
         switch (cmd->type) {
             case NK_COMMAND_NOP: {
@@ -314,7 +331,6 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
 
             case NK_COMMAND_ARC: {
-                // TODO: Add NK_COMMAND_ARC
                 // TODO: Add line thickness to arc
                 const struct nk_command_arc *a = (const struct nk_command_arc*)cmd;
                 pntr_color color = pntr_color_from_nk_color(a->color);
@@ -425,6 +441,9 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
     }
 
     nk_clear(ctx);
+
+    // Let Nuklear know that it may now process events.
+    nk_input_begin(ctx);
 }
 
 PNTR_NUKLEAR_API inline struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle rectangle) {
