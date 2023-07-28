@@ -41,6 +41,12 @@
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
 #define NK_INCLUDE_COMMAND_USERDATA
 #define NK_INCLUDE_STANDARD_BOOL
+#define NK_MEMSET PNTR_MEMSET
+#define NK_MEMCPY PNTR_MEMCPY
+#define NK_SIN PNTR_SINF
+#define NK_COS PNTR_COSF
+
+//#define NK_BUTTON_TRIGGER_ON_RELEASE
 
 #ifndef PNTR_NUKLEAR_NUKLEAR_H
 #define PNTR_NUKLEAR_NUKLEAR_H "nuklear.h"
@@ -55,12 +61,56 @@ extern "C" {
     #define PNTR_NUKLEAR_API PNTR_API
 #endif
 
+#ifdef PNTR_APP_API
+#define PNTR_APP_EVENT pntr_app_event
+#else
+#define PNTR_APP_EVENT void
+#endif
+
+/**
+ * Initialize the nuklear pntr context.
+ *
+ * @param font The font to use when rendering text. Required.
+ *
+ * @return The new nuklear context, or NULL on failure.
+ *
+ * @see pntr_unload_nuklear()
+ */
 PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font);
+
+/**
+ * Unloads the given nuklear context.
+ *
+ * @param ctx The context to unload.
+ *
+ * @see pntr_load_nuklear()
+ */
 PNTR_NUKLEAR_API void pntr_unload_nuklear(struct nk_context* ctx);
+
+/**
+ * Process the given pntr_app event.
+ *
+ * The pntr_app integration is optional, and only used if pntr_app is included before pntr_nuklear.
+ *
+ * https://github.com/robloach/pntr_app
+ *
+ * @param ctx The nuklear context to handle the event.
+ * @param event The event to process.
+ */
+PNTR_NUKLEAR_API void pntr_nuklear_event(struct nk_context* ctx, PNTR_APP_EVENT* event);
+
+/**
+ * Draws the given nuklear context on the destination image.
+ *
+ * @param dst The destination image to render to.
+ * @param ctx The nuklear context to render.
+ */
 PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx);
 PNTR_NUKLEAR_API struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle rectangle);
 PNTR_NUKLEAR_API pntr_color pntr_color_from_nk_color(struct nk_color color);
+PNTR_NUKLEAR_API struct nk_color pntr_color_to_nk_color(pntr_color color);
 PNTR_NUKLEAR_API pntr_vector pntr_vector_from_nk_vec2i(struct nk_vec2i vector);
+PNTR_NUKLEAR_API pntr_color pntr_color_from_nk_colorf(struct nk_colorf color);
 
 #ifdef __cplusplus
 }
@@ -73,26 +123,24 @@ PNTR_NUKLEAR_API pntr_vector pntr_vector_from_nk_vec2i(struct nk_vec2i vector);
 #define PNTR_NUKLEAR_IMPLEMENTATION_ONCE
 
 #define NK_IMPLEMENTATION
-#define NK_KEYSTATE_BASED_INPUT
-#include "nuklear.h"
+#include PNTR_NUKLEAR_NUKLEAR_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-float pntr_nuklear_text_width(nk_handle font, float height, const char* text, int len) {
+/**
+ * Nuklear callback to calculate the width of the given text.
+ *
+ * @internal
+ * @private
+ */
+float _pntr_nuklear_text_width(nk_handle font, float height, const char* text, int len) {
     pntr_font* pntrFont = (pntr_font*)font.ptr;
     pntr_vector size = pntr_measure_text_ex(pntrFont, text);
     return size.x;
 }
 
-/**
- * Initialize the nuklear pntr context.
- *
- * @param font The font to use when rendering text.
- *
- * @see pntr_unload_nuklear()
- */
 PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
     if (font == NULL) {
         return NULL;
@@ -103,7 +151,7 @@ PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
 
     pntr_vector size = pntr_measure_text_ex(font, "Hello World!");
     userFont->height = size.y;
-    userFont->width = pntr_nuklear_text_width;
+    userFont->width = _pntr_nuklear_text_width;
     userFont->userdata.id = 1;
     userFont->userdata.ptr = font;
 
@@ -114,6 +162,9 @@ PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
         return NULL;
     }
 
+    // Let Nuklear know that it may now process events.
+    nk_input_begin(ctx);
+
     return ctx;
 }
 
@@ -122,6 +173,10 @@ PNTR_NUKLEAR_API void pntr_unload_nuklear(struct nk_context* ctx) {
     if (ctx == NULL) {
         return;
     }
+
+    // Clear up anything remaining from the context.
+    nk_input_end(ctx);
+    nk_clear(ctx);
 
     // Clear the user font.
     pntr_unload_memory((void*)ctx->style.font);
@@ -134,14 +189,95 @@ PNTR_NUKLEAR_API void pntr_unload_nuklear(struct nk_context* ctx) {
     // Unload the nuklear context.
     nk_free(ctx);
 }
+#include <stdio.h>
 
-PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx) {
-    if (ctx == NULL || dst == NULL) {
+PNTR_NUKLEAR_API void pntr_nuklear_event(struct nk_context* ctx, PNTR_APP_EVENT* event) {
+    if (ctx == NULL || event == NULL) {
         return;
     }
 
-    const struct nk_command *cmd;
+    // TODO: pntr_nuklear_event: Add support to route your own event system.
+#ifdef PNTR_APP_API
+    switch (event->type) {
+        case PNTR_APP_EVENTTYPE_KEY_DOWN:
+        case PNTR_APP_EVENTTYPE_KEY_UP: {
+            switch (event->key) {
+                case PNTR_APP_KEY_LEFT_SHIFT:
+                case PNTR_APP_KEY_RIGHT_SHIFT: nk_input_key(ctx, NK_KEY_SHIFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_LEFT_CONTROL:
+                case PNTR_APP_KEY_RIGHT_CONTROL: nk_input_key(ctx, NK_KEY_CTRL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_DELETE: nk_input_key(ctx, NK_KEY_DEL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_ENTER: nk_input_key(ctx, NK_KEY_ENTER, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_TAB: nk_input_key(ctx, NK_KEY_TAB, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_BACKSPACE: nk_input_key(ctx, NK_KEY_BACKSPACE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case COPY: nk_input_key(ctx, NK_KEY_COPY, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case CUT: nk_input_key(ctx, NK_KEY_CUT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case PASTE: nk_input_key(ctx, NK_KEY_PASTE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_UP: nk_input_key(ctx, NK_KEY_UP, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_DOWN: nk_input_key(ctx, NK_KEY_DOWN, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_LEFT: nk_input_key(ctx, NK_KEY_LEFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_RIGHT: nk_input_key(ctx, NK_KEY_RIGHT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_INSERT: nk_input_key(ctx, NK_KEY_TEXT_INSERT_MODE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_REPLACE_MODE: nk_input_key(ctx, NK_KEY_TEXT_REPLACE_MODE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_RESET_MODE: nk_input_key(ctx, NK_KEY_TEXT_RESET_MODE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_HOME: nk_input_key(ctx, NK_KEY_TEXT_LINE_START, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_END: nk_input_key(ctx, NK_KEY_TEXT_LINE_END, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_START: nk_input_key(ctx, NK_KEY_TEXT_START, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_END: nk_input_key(ctx, NK_KEY_TEXT_END, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_UNDO: nk_input_key(ctx, NK_KEY_TEXT_UNDO, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_REDO: nk_input_key(ctx, NK_KEY_TEXT_REDO, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_SELECT_ALL: nk_input_key(ctx, NK_KEY_TEXT_SELECT_ALL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_WORD_LEFT: nk_input_key(ctx, NK_KEY_TEXT_WORD_LEFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case TEXT_WORD_RIGHT: nk_input_key(ctx, NK_KEY_TEXT_WORD_RIGHT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case SCROLL_START: nk_input_key(ctx, NK_KEY_SCROLL_START, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                //case SCROLL_END: nk_input_key(ctx, NK_KEY_SCROLL_END, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_PAGE_DOWN: nk_input_key(ctx, NK_KEY_SCROLL_DOWN, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_PAGE_UP: nk_input_key(ctx, NK_KEY_SCROLL_UP, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                default:
+                    if (event->type == PNTR_APP_EVENTTYPE_KEY_DOWN) {
+                        nk_input_unicode(ctx, event->key);
+                    }
+                    break;
+            }
+        }
+        break;
 
+        case PNTR_APP_EVENTTYPE_MOUSE_MOVE: {
+            // printf("Mouse Move: %d, %d\n" , event->mouseX, event->mouseY);
+            nk_input_motion(ctx, event->mouseX, event->mouseY);
+        }
+        break;
+
+        case PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN:
+        case PNTR_APP_EVENTTYPE_MOUSE_BUTTON_UP: {
+            enum nk_buttons button = NK_BUTTON_MAX;
+            switch (event->mouseButton) {
+                case PNTR_APP_MOUSE_BUTTON_LEFT: button = NK_BUTTON_LEFT; break;
+                case PNTR_APP_MOUSE_BUTTON_RIGHT: button = NK_BUTTON_RIGHT; break;
+                case PNTR_APP_MOUSE_BUTTON_MIDDLE: button = NK_BUTTON_MIDDLE; break;
+            }
+            if (button != NK_BUTTON_MAX) {
+                // printf("Mouse Event: %s\n" , event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN ? "Pushed" : "Releasde");
+                nk_input_button(ctx, button, event->mouseX, event->mouseY,
+                    event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN ? nk_true : nk_false
+                );
+            }
+        }
+        break;
+    }
+#endif  // PNTR_APP_API
+}
+
+PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx) {
+    if (dst == NULL || ctx == NULL) {
+        return;
+    }
+
+    // Finish processing events as we'll now draw the context.
+    nk_input_end(ctx);
+
+    // Iterate through each drawing command.
+    const struct nk_command *cmd;
     nk_foreach(cmd, ctx) {
         switch (cmd->type) {
             case NK_COMMAND_NOP: {
@@ -188,15 +324,6 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 const struct nk_command_rect *r = (const struct nk_command_rect *)cmd;
                 pntr_color color = pntr_color_from_nk_color(r->color);
                 pntr_draw_rectangle(dst, (int)r->x, (int)r->y, (int)r->w, (int)r->h, (int)r->line_thickness, color);
-
-                //Rectangle rect = {r->x, r->y, r->w, r->h};
-                //float roundness = r->rounding * RAYLIB_NUKLEAR_ROUNDING_SCALE / (rect.width + rect.height);
-                // if (roundness > 0.0f) {
-                //     DrawRectangleRoundedLines(rect, roundness, RAYLIB_NUKLEAR_DEFAULT_ARC_SEGMENTS, r->line_thickness, color);
-                // }
-                // else {
-                    //DrawRectangleLinesEx(rect, r->line_thickness, color);
-                //}
             } break;
 
             case NK_COMMAND_RECT_FILLED: {
@@ -204,15 +331,6 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 const struct nk_command_rect_filled *r = (const struct nk_command_rect_filled *)cmd;
                 pntr_color color = pntr_color_from_nk_color(r->color);
                 pntr_draw_rectangle_fill(dst, r->x, r->y, r->w, r->h, color);
-
-                //Rectangle rect = {r->x, r->y, r->w, r->h};
-                // float roundness = r->rounding * RAYLIB_NUKLEAR_ROUNDING_SCALE / (rect.width + rect.height);
-                // if (roundness > 0.0f) {
-                //     DrawRectangleRounded(rect, roundness, RAYLIB_NUKLEAR_DEFAULT_ARC_SEGMENTS, color);
-                // }
-                // else {
-                    //DrawRectangleRec(rect, color);
-                //}
             } break;
 
             case NK_COMMAND_RECT_MULTI_COLOR: {
@@ -248,19 +366,31 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
 
             case NK_COMMAND_ARC: {
-                // TODO: Add NK_COMMAND_ARC
-                // const struct nk_command_arc *a = (const struct nk_command_arc*)cmd;
-                // pntr_color color = pntr_color_from_nk_color(a->color);
-                // pntr_vector center = {a->cx, a->cy};
-                // DrawRingLines(center, 0, a->r, a->a[0] * RAD2DEG - 45, a->a[1] * RAD2DEG - 45, RAYLIB_NUKLEAR_DEFAULT_ARC_SEGMENTS, color);
+                // TODO: Add line thickness to arc
+                const struct nk_command_arc *a = (const struct nk_command_arc*)cmd;
+                pntr_color color = pntr_color_from_nk_color(a->color);
+
+                #ifndef PNTR_NUKLEAR_ARC_SEGMENTS
+                    #define PNTR_NUKLEAR_ARC_SEGMENTS 20
+                #endif
+                float startAngle = a->a[0] * PNTR_RAD2DEG - 45;
+                float endAngle = a->a[1] * PNTR_RAD2DEG - 45;
+
+                pntr_draw_arc(dst, (int)a->cx, (int)a->cy, a->r, startAngle, endAngle, PNTR_NUKLEAR_ARC_SEGMENTS, color);
             } break;
 
             case NK_COMMAND_ARC_FILLED: {
                 // TODO: Add NK_COMMAND_ARC_FILLED
-                // const struct nk_command_arc_filled *a = (const struct nk_command_arc_filled*)cmd;
-                // pntr_color color = pntr_color_from_nk_color(a->color);
-                // pntr_vector center = {a->cx, a->cy};
-                // DrawRing(center, 0, a->r, a->a[0] * RAD2DEG - 45, a->a[1] * RAD2DEG - 45, RAYLIB_NUKLEAR_DEFAULT_ARC_SEGMENTS, color);
+                const struct nk_command_arc_filled *a = (const struct nk_command_arc_filled*)cmd;
+                pntr_color color = pntr_color_from_nk_color(a->color);
+
+                #ifndef PNTR_NUKLEAR_ARC_FILL_SEGMENTS
+                    #define PNTR_NUKLEAR_ARC_FILL_SEGMENTS 20
+                #endif
+                float startAngle = a->a[0] * PNTR_RAD2DEG - 45;
+                float endAngle = a->a[1] * PNTR_RAD2DEG - 45;
+
+                pntr_draw_arc_fill(dst, (int)a->cx, (int)a->cy, a->r, startAngle, endAngle, PNTR_NUKLEAR_ARC_SEGMENTS, color);
             } break;
 
             case NK_COMMAND_TRIANGLE: {
@@ -303,17 +433,18 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
 
             case NK_COMMAND_POLYLINE: {
-                // // TODO: Polygon expects counter clockwise order
-                // const struct nk_command_polyline *p = (const struct nk_command_polyline *)cmd;
-                // pntr_color color = pntr_color_from_nk_color(p->color);
-                // struct pntr_vector* points = (struct pntr_vector*)MemAlloc(p->point_count * (unsigned short)sizeof(pntr_vector));
-                // unsigned short i;
-                // for (i = 0; i < p->point_count; i++) {
-                //     points[i].x = p->points[i].x;
-                //     points[i].y = p->points[i].y;
-                // }
-                // DrawTriangleStrip(points, p->point_count, color);
-                // MemFree(points);
+                // TODO: Confirm Polyline works
+                const struct nk_command_polyline *p = (const struct nk_command_polyline *)cmd;
+                pntr_color color = pntr_color_from_nk_color(p->color);
+                struct pntr_vector* points = (struct pntr_vector*)pntr_load_memory(sizeof(pntr_vector) * (size_t)p->point_count);
+
+                for (unsigned short i = 0; i < p->point_count; i++) {
+                    points[i].x = (int)p->points[i].x;
+                    points[i].y = (int)p->points[i].y;
+                }
+
+                pntr_draw_polyline(dst, points, (int)p->point_count, color);
+                pntr_unload_memory(points);
             } break;
 
             case NK_COMMAND_TEXT: {
@@ -334,9 +465,8 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
 
             case NK_COMMAND_CUSTOM: {
-                // TraceLog(LOG_WARNING, "NUKLEAR: Unverified custom callback implementation NK_COMMAND_CUSTOM");
-                // const struct nk_command_custom *custom = (const struct nk_command_custom *)cmd;
-                // custom->callback(NULL, (short)(custom->x), (short)(custom->y), (unsigned short)(custom->w), (unsigned short)(custom->h), custom->callback_data);
+                const struct nk_command_custom *custom = (const struct nk_command_custom *)cmd;
+                custom->callback(NULL, (short)(custom->x), (short)(custom->y), (unsigned short)(custom->w), (unsigned short)(custom->h), custom->callback_data);
             } break;
 
             default: {
@@ -346,6 +476,9 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
     }
 
     nk_clear(ctx);
+
+    // Let Nuklear know that it may now process events.
+    nk_input_begin(ctx);
 }
 
 PNTR_NUKLEAR_API inline struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle rectangle) {
@@ -361,10 +494,32 @@ PNTR_NUKLEAR_API inline pntr_color pntr_color_from_nk_color(struct nk_color colo
     return pntr_new_color(color.r, color.g, color.b, color.a);
 }
 
+PNTR_NUKLEAR_API struct nk_color pntr_color_to_nk_color(pntr_color color) {
+    return nk_rgba(color.r, color.g, color.b, color.a);
+}
+
+PNTR_NUKLEAR_API inline pntr_color pntr_color_from_nk_colorf(struct nk_colorf color) {
+    return pntr_new_color(
+        (unsigned char)(color.r * 255.0f),
+        (unsigned char)(color.g * 255.0f),
+        (unsigned char)(color.b * 255.0f),
+        (unsigned char)(color.a * 255.0f)
+    );
+}
+
+PNTR_NUKLEAR_API struct nk_colorf pntr_color_to_nk_colorf(pntr_color color) {
+    struct nk_colorf out;
+    out.r = (float)color.r / 255.0f;
+    out.g = (float)color.g / 255.0f;
+    out.b = (float)color.b / 255.0f;
+    out.a = (float)color.a / 255.0f;
+    return out;
+}
+
 PNTR_NUKLEAR_API inline pntr_vector pntr_vector_from_nk_vec2i(struct nk_vec2i vector) {
     return PNTR_CLITERAL(pntr_vector) {
-        (int)vector.x,
-        (int)vector.y
+        vector.x,
+        vector.y
     };
 }
 

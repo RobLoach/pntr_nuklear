@@ -32,7 +32,7 @@ int main() {
         NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_CLOSABLE)) {
         nk_layout_row_static(ctx, 30, 80, 1);
         if (nk_button_label(ctx, "Button")) {
-            // Event handling
+            printf("Button Pressed!\n");
         }
 
         // Fixed widget window ratio width

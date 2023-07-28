@@ -35,6 +35,20 @@ int main() {
 }
 ```
 
+### API
+
+``` c
+struct nk_context* pntr_load_nuklear(pntr_font* font);
+void pntr_unload_nuklear(struct nk_context* ctx);
+void pntr_nuklear_event(struct nk_context* ctx, pntr_app_event* event);
+void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx);
+struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle rectangle);
+pntr_color pntr_color_from_nk_color(struct nk_color color);
+struct nk_color pntr_color_to_nk_color(pntr_color color);
+pntr_vector pntr_vector_from_nk_vec2i(struct nk_vec2i vector);
+pntr_color pntr_color_from_nk_colorf(struct nk_colorf color);
+```
+
 ## License
 
 Unless stated otherwise, all works are:
