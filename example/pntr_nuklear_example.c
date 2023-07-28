@@ -78,7 +78,11 @@ bool Update(pntr_image* screen, void* userData) {
 
 void Event(pntr_app_event* event, void* userData) {
     AppData* app = (AppData*)userData;
-    pntr_update_nuklear(app->ctx, event);
+    if (app == NULL) {
+        return;
+    }
+
+    pntr_nuklear_event(app->ctx, event);
 }
 
 void Close(void* userData) {

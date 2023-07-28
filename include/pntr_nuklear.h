@@ -67,9 +67,44 @@ extern "C" {
 #define PNTR_APP_EVENT void
 #endif
 
+/**
+ * Initialize the nuklear pntr context.
+ *
+ * @param font The font to use when rendering text. Required.
+ *
+ * @return The new nuklear context, or NULL on failure.
+ *
+ * @see pntr_unload_nuklear()
+ */
 PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font);
+
+/**
+ * Unloads the given nuklear context.
+ *
+ * @param ctx The context to unload.
+ *
+ * @see pntr_load_nuklear()
+ */
 PNTR_NUKLEAR_API void pntr_unload_nuklear(struct nk_context* ctx);
-PNTR_NUKLEAR_API void pntr_update_nuklear(struct nk_context* ctx, PNTR_APP_EVENT* event);
+
+/**
+ * Process the given pntr_app event.
+ *
+ * The pntr_app integration is optional, and only used if pntr_app is included before pntr_nuklear.
+ *
+ * https://github.com/robloach/pntr_app
+ *
+ * @param ctx The nuklear context to handle the event.
+ * @param event The event to process.
+ */
+PNTR_NUKLEAR_API void pntr_nuklear_event(struct nk_context* ctx, PNTR_APP_EVENT* event);
+
+/**
+ * Draws the given nuklear context on the destination image.
+ *
+ * @param dst The destination image to render to.
+ * @param ctx The nuklear context to render.
+ */
 PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx);
 PNTR_NUKLEAR_API struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle rectangle);
 PNTR_NUKLEAR_API pntr_color pntr_color_from_nk_color(struct nk_color color);
@@ -94,19 +129,18 @@ PNTR_NUKLEAR_API pntr_color pntr_color_from_nk_colorf(struct nk_colorf color);
 extern "C" {
 #endif
 
-float pntr_nuklear_text_width(nk_handle font, float height, const char* text, int len) {
+/**
+ * Nuklear callback to calculate the width of the given text.
+ *
+ * @internal
+ * @private
+ */
+float _pntr_nuklear_text_width(nk_handle font, float height, const char* text, int len) {
     pntr_font* pntrFont = (pntr_font*)font.ptr;
     pntr_vector size = pntr_measure_text_ex(pntrFont, text);
     return size.x;
 }
 
-/**
- * Initialize the nuklear pntr context.
- *
- * @param font The font to use when rendering text.
- *
- * @see pntr_unload_nuklear()
- */
 PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
     if (font == NULL) {
         return NULL;
@@ -117,7 +151,7 @@ PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
 
     pntr_vector size = pntr_measure_text_ex(font, "Hello World!");
     userFont->height = size.y;
-    userFont->width = pntr_nuklear_text_width;
+    userFont->width = _pntr_nuklear_text_width;
     userFont->userdata.id = 1;
     userFont->userdata.ptr = font;
 
@@ -157,12 +191,13 @@ PNTR_NUKLEAR_API void pntr_unload_nuklear(struct nk_context* ctx) {
 }
 #include <stdio.h>
 
-PNTR_NUKLEAR_API void pntr_update_nuklear(struct nk_context* ctx, PNTR_APP_EVENT* event) {
-#ifdef PNTR_APP_API
+PNTR_NUKLEAR_API void pntr_nuklear_event(struct nk_context* ctx, PNTR_APP_EVENT* event) {
     if (ctx == NULL || event == NULL) {
         return;
     }
 
+    // TODO: pntr_nuklear_event: Add support to route your own event system.
+#ifdef PNTR_APP_API
     switch (event->type) {
         case PNTR_APP_EVENTTYPE_KEY_DOWN:
         case PNTR_APP_EVENTTYPE_KEY_UP: {
