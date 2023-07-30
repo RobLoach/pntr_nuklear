@@ -16,13 +16,6 @@ int main() {
     struct nk_context* ctx = pntr_load_nuklear(font);
     assert(ctx);
 
-    // Nuklear GUI Code
-    // if (nk_begin(ctx, "pntr-nuklear", nk_rect(50, 50, 300, 200),
-    //                 NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_CLOSABLE)) {
-    //     nk_button_label(ctx, "Button");
-    // }
-    // nk_end(ctx);
-
     enum {EASY, HARD};
     static int op = EASY;
     static float value = 0.6f;
