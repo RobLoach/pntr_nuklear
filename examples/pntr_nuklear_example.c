@@ -22,7 +22,7 @@ bool Init(void* userData) {
     AppData* app = (AppData*)userData;
     app->font = pntr_load_font_default();
     app->ctx = pntr_load_nuklear(app->font);
-    app->bg = PNTR_RAYWHITE;
+    app->bg = pntr_get_color(0x141414FF);
 
     return true;
 }
