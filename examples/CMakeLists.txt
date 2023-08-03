@@ -18,27 +18,6 @@ foreach (example_source ${example_sources})
     set(example_source_source ${example_source})
     string(REPLACE ".c" "" example_name ${example_name})
 
-    # SDL
-    if (PNTR_NUKLEAR_BUILD_EXAMPLES_SDL)
-        find_package(SDL2 QUIET)
-
-        set(example_name_sdl ${example_name}_sdl)
-
-        add_executable(${example_name_sdl}
-            ${example_source_source}
-        )
-        target_link_libraries(${example_name_sdl} PRIVATE
-            SDL2::SDL2
-            SDL2::SDL2main
-            pntr
-            pntr_app
-            pntr_nuklear
-            m
-            Nuklear
-        )
-        target_compile_definitions(${example_name_sdl} PUBLIC PNTR_APP_SDL)
-    endif()
-
     # raylib
     if (PNTR_NUKLEAR_BUILD_EXAMPLES_RAYLIB)
         find_package(raylib QUIET)
@@ -58,25 +37,24 @@ foreach (example_source ${example_sources})
         target_compile_definitions(${example_name_raylib} PUBLIC PNTR_APP_RAYLIB)
     endif()
 
-    # libretro
-    if (PNTR_NUKLEAR_BUILD_EXAMPLES_LIBRETRO)
-        find_package(libretro QUIET)
-        set(example_name_libretro ${example_name}_libretro)
+    # CLI
+    if (PNTR_NUKLEAR_BUILD_EXAMPLES_CLI AND NOT EMSCRIPTEN)
+        set(example_name_cli ${example_name}_cli)
 
-        add_library(${example_name_libretro} SHARED
+        add_executable(${example_name_cli}
             ${example_source_source}
         )
-        target_link_libraries(${example_name_libretro} PUBLIC
+        target_link_libraries(${example_name_cli} PUBLIC
             pntr
             pntr_app
             pntr_nuklear
-            libretro
             m
             Nuklear
         )
-        set_target_properties(${example_name_libretro} PROPERTIES PREFIX "")
-        target_compile_definitions(${example_name_libretro} PUBLIC PNTR_APP_LIBRETRO)
+        target_compile_definitions(${example_name_cli} PUBLIC PNTR_APP_CLI)
+        set_property(TARGET ${example_name_cli} PROPERTY C_STANDARD 99)
     endif()
+
 endforeach ()
 
 # Resources

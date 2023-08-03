@@ -23,6 +23,12 @@ typedef struct AppData {
 #define INCLUDE_OVERVIEW
 //#define INCLUDE_NODE_EDITOR
 
+// Include the examples
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 #ifdef INCLUDE_STYLE
   #include "demo/style.c"
 #endif
@@ -38,14 +44,13 @@ typedef struct AppData {
 #ifdef INCLUDE_NODE_EDITOR
   #include "demo/node_editor.c"
 #endif
+#pragma GCC diagnostic pop
 
 bool Init(void* userData) {
     AppData* app = (AppData*)userData;
     app->font = pntr_load_font_default();
     app->ctx = pntr_load_nuklear(app->font);
     app->bg = PNTR_RAYWHITE;
-
-
 
     #ifdef INCLUDE_STYLE
         #ifdef STYLE_WHITE

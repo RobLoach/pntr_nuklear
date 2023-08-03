@@ -37,6 +37,7 @@
 
 #define NK_INCLUDE_STANDARD_VARARGS
 #define NK_INCLUDE_COMMAND_USERDATA
+#define NK_VSNPRINTF
 // TODO: Replace NK_INCLUDE_DEFAULT_ALLOCATOR
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
 #define NK_INCLUDE_COMMAND_USERDATA
@@ -245,6 +246,12 @@ PNTR_NUKLEAR_API void pntr_nuklear_event(struct nk_context* ctx, PNTR_APP_EVENT*
         case PNTR_APP_EVENTTYPE_MOUSE_MOVE: {
             // printf("Mouse Move: %d, %d\n" , event->mouseX, event->mouseY);
             nk_input_motion(ctx, event->mouseX, event->mouseY);
+        }
+        break;
+
+        case PNTR_APP_EVENTTYPE_MOUSE_WHEEL: {
+            struct nk_vec2 wheel = nk_vec2(0.0f, (event->mouseWheel > 0) ? 1.0f : -1.0f);
+            nk_input_scroll(ctx, wheel);
         }
         break;
 
