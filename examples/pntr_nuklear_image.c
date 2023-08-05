@@ -33,8 +33,6 @@ bool Update(pntr_image* screen, void* userData) {
         return false;
     }
 
-    struct nk_image image = pntr_image_nk(app->image);
-
     // GUI
     if (nk_begin(ctx, "Demo", nk_rect(20, 20, 300, 300),
         NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|
@@ -44,7 +42,7 @@ bool Update(pntr_image* screen, void* userData) {
         nk_layout_row_static(ctx, app->image->height, app->image->width, 1);
 
         // Draw the image
-        nk_image(ctx, image);
+        nk_image(ctx, pntr_image_nk(app->image));
     }
     nk_end(ctx);
 

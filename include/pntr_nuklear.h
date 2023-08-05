@@ -112,6 +112,17 @@ PNTR_NUKLEAR_API pntr_color pntr_color_from_nk_color(struct nk_color color);
 PNTR_NUKLEAR_API struct nk_color pntr_color_to_nk_color(pntr_color color);
 PNTR_NUKLEAR_API pntr_vector pntr_vector_from_nk_vec2i(struct nk_vec2i vector);
 PNTR_NUKLEAR_API pntr_color pntr_color_from_nk_colorf(struct nk_colorf color);
+
+/**
+ * Creates a Nuklear reference to the given pntr_image for use in nk_image().
+ *
+ * @code
+ * nk_image(ctx, pntr_image_nk(app->image));
+ * @endcode
+ *
+ * @see nk_image()
+ * @see pntr_load_image()
+ */
 PNTR_NUKLEAR_API struct nk_image pntr_image_nk(pntr_image* image);
 
 #ifdef __cplusplus
@@ -479,28 +490,21 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
 
             case NK_COMMAND_IMAGE: {
-                printf("Draw comman\n");
                 const struct nk_command_image *i = (const struct nk_command_image *)cmd;
                 if (i == NULL) {
                     break;
                 }
-                printf("Draw setting image\n");
+
                 pntr_image* image = (pntr_image*)(i->img.handle.ptr);
                 if (image == NULL) {
                     break;
                 }
-                printf("Draw Prep\n");
-                //pntr_color tint = pntr_color_from_nk_color(i->col);
-                if (dst == NULL) {
-                    break;
-                }
-                printf("Draw\n");
-                pntr_draw_image(dst, image, (int)i->x, (int)i->y);
-                printf("Draw Done\n");
-                //pntr_rectangle source = {0, 0, image->width, image->height};
-                // Rectangle dest = {i->x, i->y, i->w, i->h};
-                // pntr_vector origin = {0, 0};
-                // DrawTexturePro(texture, source, dest, origin, 0, tint);
+
+                pntr_color tint = pntr_color_from_nk_color(i->col);
+                pntr_rectangle srcRect = {i->img.region[0], i->img.region[1], i->img.region[2], i->img.region[3]};
+                pntr_rectangle destination = {(int)i->x, (int)i->y, (int)i->w, (int)i->h};
+
+                pntr_draw_image_tint_rec(dst, image, srcRect, destination.x, destination.y, tint);
             } break;
 
             case NK_COMMAND_CUSTOM: {
@@ -563,18 +567,28 @@ PNTR_NUKLEAR_API inline pntr_vector pntr_vector_from_nk_vec2i(struct nk_vec2i ve
 }
 
 PNTR_NUKLEAR_API struct nk_image pntr_image_nk(pntr_image* image) {
-	// Declare the img to store data and allocate memory
-	// For the texture
-	struct nk_image img;
-                printf("Constrct\n");
-    if (image == NULL) {
-                printf("Setting from image\n");
-        img.handle.ptr = (void*)image;
-        img.w = image->width;
-        img.h = image->height;
+	struct nk_image out;
+
+    if (image != NULL) {
+        out.handle.ptr = (void*)image;
+        out.w = (nk_ushort)image->width;
+        out.h = (nk_ushort)image->height;
+        out.region[0] = 0;
+        out.region[1] = 0;
+        out.region[2] = out.w;
+        out.region[3] = out.h;
     }
-                printf("Done\n");
-    return img;
+    else {
+        out.handle.ptr = NULL;
+        out.w = 0;
+        out.h = 0;
+        out.region[0] = 0;
+        out.region[1] = 0;
+        out.region[2] = 0;
+        out.region[3] = 0;
+    }
+
+    return out;
 }
 
 #ifdef __cplusplus
