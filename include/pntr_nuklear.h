@@ -113,6 +113,18 @@ PNTR_NUKLEAR_API struct nk_color pntr_color_to_nk_color(pntr_color color);
 PNTR_NUKLEAR_API pntr_vector pntr_vector_from_nk_vec2i(struct nk_vec2i vector);
 PNTR_NUKLEAR_API pntr_color pntr_color_from_nk_colorf(struct nk_colorf color);
 
+/**
+ * Creates a Nuklear reference to the given pntr_image for use in nk_image().
+ *
+ * @code
+ * nk_image(ctx, pntr_image_nk(app->image));
+ * @endcode
+ *
+ * @see nk_image()
+ * @see pntr_load_image()
+ */
+PNTR_NUKLEAR_API struct nk_image pntr_image_nk(pntr_image* image);
+
 #ifdef __cplusplus
 }
 #endif
@@ -330,14 +342,30 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 // TODO: NK_COMMAND_RECT Add Rounding to the rectangle
                 const struct nk_command_rect *r = (const struct nk_command_rect *)cmd;
                 pntr_color color = pntr_color_from_nk_color(r->color);
-                pntr_draw_rectangle(dst, (int)r->x, (int)r->y, (int)r->w, (int)r->h, (int)r->line_thickness, color);
+                // Skip rounded rectangles for now
+                if (true) {
+                //if (r->rounding == 0) {
+                    pntr_draw_rectangle(dst, (int)r->x, (int)r->y, (int)r->w, (int)r->h, (int)r->line_thickness, color);
+                }
+                else {
+                    // TODO: Add (int)r->line_thickness
+                    int rounding = (int)r->rounding;
+                    pntr_draw_rectangle_rounded(dst, (int)r->x, (int)r->y, (int)r->w, (int)r->h, rounding, rounding, rounding, rounding, color);
+                }
             } break;
 
             case NK_COMMAND_RECT_FILLED: {
                 // TODO: NK_COMMAND_RECT Add Rounding to the rectangle filled
                 const struct nk_command_rect_filled *r = (const struct nk_command_rect_filled *)cmd;
                 pntr_color color = pntr_color_from_nk_color(r->color);
-                pntr_draw_rectangle_fill(dst, r->x, r->y, r->w, r->h, color);
+                // Skip rounded rectangles for now
+                if (true) {
+                //if (r->rounding == 0) {
+                    pntr_draw_rectangle_fill(dst, r->x, r->y, r->w, r->h, color);
+                }
+                else {
+                    pntr_draw_rectangle_rounded_fill(dst, (int)r->x, (int)r->y, (int)r->w, (int)r->h, (int)r->rounding, color);
+                }
             } break;
 
             case NK_COMMAND_RECT_MULTI_COLOR: {
@@ -462,13 +490,21 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
 
             case NK_COMMAND_IMAGE: {
-                // const struct nk_command_image *i = (const struct nk_command_image *)cmd;
-                // Texture texture = *(Texture*)i->img.handle.ptr;
-                // Rectangle source = {0, 0, texture.width, texture.height};
-                // Rectangle dest = {i->x, i->y, i->w, i->h};
-                // pntr_vector origin = {0, 0};
-                // pntr_color tint = pntr_color_from_nk_color(i->col);
-                // DrawTexturePro(texture, source, dest, origin, 0, tint);
+                const struct nk_command_image *i = (const struct nk_command_image *)cmd;
+                if (i == NULL) {
+                    break;
+                }
+
+                pntr_image* image = (pntr_image*)(i->img.handle.ptr);
+                if (image == NULL) {
+                    break;
+                }
+
+                pntr_color tint = pntr_color_from_nk_color(i->col);
+                pntr_rectangle srcRect = {i->img.region[0], i->img.region[1], i->img.region[2], i->img.region[3]};
+                pntr_rectangle destination = {(int)i->x, (int)i->y, (int)i->w, (int)i->h};
+
+                pntr_draw_image_tint_rec(dst, image, srcRect, destination.x, destination.y, tint);
             } break;
 
             case NK_COMMAND_CUSTOM: {
@@ -528,6 +564,31 @@ PNTR_NUKLEAR_API inline pntr_vector pntr_vector_from_nk_vec2i(struct nk_vec2i ve
         vector.x,
         vector.y
     };
+}
+
+PNTR_NUKLEAR_API struct nk_image pntr_image_nk(pntr_image* image) {
+	struct nk_image out;
+
+    if (image != NULL) {
+        out.handle.ptr = (void*)image;
+        out.w = (nk_ushort)image->width;
+        out.h = (nk_ushort)image->height;
+        out.region[0] = 0;
+        out.region[1] = 0;
+        out.region[2] = out.w;
+        out.region[3] = out.h;
+    }
+    else {
+        out.handle.ptr = NULL;
+        out.w = 0;
+        out.h = 0;
+        out.region[0] = 0;
+        out.region[1] = 0;
+        out.region[2] = 0;
+        out.region[3] = 0;
+    }
+
+    return out;
 }
 
 #ifdef __cplusplus

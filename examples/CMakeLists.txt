@@ -58,7 +58,7 @@ foreach (example_source ${example_sources})
 endforeach ()
 
 # Resources
-#file(GLOB resources resources/*)
-#set(examples_resources)
-#list(APPEND examples_resources ${resources})
-#file(COPY ${examples_resources} DESTINATION "resources/")
+file(GLOB resources resources/*)
+set(examples_resources)
+list(APPEND examples_resources ${resources})
+file(COPY ${examples_resources} DESTINATION "resources/")
