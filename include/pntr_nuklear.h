@@ -151,8 +151,13 @@ extern "C" {
  */
 float _pntr_nuklear_text_width(nk_handle font, float height, const char* text, int len) {
     pntr_font* pntrFont = (pntr_font*)font.ptr;
-    pntr_vector size = pntr_measure_text_ex(pntrFont, text);
-    return size.x;
+
+    // TODO: Get the text width without requiring a new buffer.
+    char buffer[1024];
+    pntr_memory_copy(buffer, (void*)text, (size_t)len);
+    buffer[len] = '\0';
+
+    return pntr_measure_text(pntrFont, buffer);
 }
 
 PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
