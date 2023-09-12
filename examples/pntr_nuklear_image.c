@@ -15,8 +15,8 @@ typedef struct AppData {
     pntr_image* image;
 } AppData;
 
-bool Init(void* userData) {
-    AppData* app = (AppData*)userData;
+bool Init(pntr_app* application) {
+    AppData* app = (AppData*)pntr_app_userdata(application);
     app->font = pntr_load_font_default();
     app->ctx = pntr_load_nuklear(app->font);
     app->image = pntr_load_image("resources/test-image.png");
@@ -24,8 +24,8 @@ bool Init(void* userData) {
     return app->image != NULL;
 }
 
-bool Update(pntr_image* screen, void* userData) {
-    AppData* app = (AppData*)userData;
+bool Update(pntr_app* application, pntr_image* screen) {
+    AppData* app = (AppData*)pntr_app_userdata(application);
 
     struct nk_context* ctx = app->ctx;
 
@@ -53,8 +53,8 @@ bool Update(pntr_image* screen, void* userData) {
     return true;
 }
 
-void Event(pntr_app_event* event, void* userData) {
-    AppData* app = (AppData*)userData;
+void Event(pntr_app* application, pntr_app_event* event) {
+    AppData* app = (AppData*)pntr_app_userdata(application);
     if (app == NULL) {
         return;
     }
@@ -62,8 +62,8 @@ void Event(pntr_app_event* event, void* userData) {
     pntr_nuklear_event(app->ctx, event);
 }
 
-void Close(void* userData) {
-    AppData* app = (AppData*)userData;
+void Close(pntr_app* application) {
+    AppData* app = (AppData*)pntr_app_userdata(application);
     pntr_unload_image(app->image);
     pntr_unload_font(app->font);
     pntr_unload_nuklear(app->ctx);

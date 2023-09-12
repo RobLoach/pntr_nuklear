@@ -293,6 +293,7 @@ PNTR_NUKLEAR_API void pntr_nuklear_event(struct nk_context* ctx, PNTR_APP_EVENT*
 #endif  // PNTR_APP_API
 }
 
+#include <stdio.h>
 PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx) {
     if (dst == NULL || ctx == NULL) {
         return;
@@ -311,8 +312,9 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
             case NK_COMMAND_SCISSOR: {
                 // TODO: Add NK_COMMAND_SCISSOR clipping
-                //const struct nk_command_scissor *s =(const struct nk_command_scissor*)cmd;
+                const struct nk_command_scissor *s =(const struct nk_command_scissor*)cmd;
                 //BeginScissorMode((int)(s->x), (int)(s->y), (int)(s->w), (int)(s->h));
+                //printf("Scissor: %dx%d %dx%d\n", (int)(s->x), (int)(s->y), (int)(s->w), (int)(s->h));
             } break;
 
             case NK_COMMAND_LINE: {
@@ -414,8 +416,8 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 #ifndef PNTR_NUKLEAR_ARC_SEGMENTS
                     #define PNTR_NUKLEAR_ARC_SEGMENTS 20
                 #endif
-                float startAngle = a->a[0] * PNTR_RAD2DEG - 45;
-                float endAngle = a->a[1] * PNTR_RAD2DEG - 45;
+                float startAngle = a->a[0];
+                float endAngle = a->a[1];
 
                 pntr_draw_arc(dst, (int)a->cx, (int)a->cy, a->r, startAngle, endAngle, PNTR_NUKLEAR_ARC_SEGMENTS, color);
             } break;
@@ -428,8 +430,8 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 #ifndef PNTR_NUKLEAR_ARC_FILL_SEGMENTS
                     #define PNTR_NUKLEAR_ARC_FILL_SEGMENTS 20
                 #endif
-                float startAngle = a->a[0] * PNTR_RAD2DEG - 45;
-                float endAngle = a->a[1] * PNTR_RAD2DEG - 45;
+                float startAngle = a->a[0];
+                float endAngle = a->a[1];
 
                 pntr_draw_arc_fill(dst, (int)a->cx, (int)a->cy, a->r, startAngle, endAngle, PNTR_NUKLEAR_ARC_SEGMENTS, color);
             } break;

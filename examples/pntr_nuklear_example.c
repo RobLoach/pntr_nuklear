@@ -18,8 +18,8 @@ typedef struct AppData {
     pntr_color bg;
 } AppData;
 
-bool Init(void* userData) {
-    AppData* app = (AppData*)userData;
+bool Init(pntr_app* application) {
+    AppData* app = (AppData*)pntr_app_userdata(application);
     app->font = pntr_load_font_default();
     app->ctx = pntr_load_nuklear(app->font);
     app->bg = pntr_get_color(0x141414FF);
@@ -27,8 +27,8 @@ bool Init(void* userData) {
     return true;
 }
 
-bool Update(pntr_image* screen, void* userData) {
-    AppData* app = (AppData*)userData;
+bool Update(pntr_app* application, pntr_image* screen) {
+    AppData* app = (AppData*)pntr_app_userdata(application);
 
     struct nk_context* ctx = app->ctx;
     struct nk_colorf bg = pntr_color_to_nk_colorf(app->bg);
@@ -76,8 +76,8 @@ bool Update(pntr_image* screen, void* userData) {
     return true;
 }
 
-void Event(pntr_app_event* event, void* userData) {
-    AppData* app = (AppData*)userData;
+void Event(pntr_app* application, pntr_app_event* event) {
+    AppData* app = (AppData*)pntr_app_userdata(application);
     if (app == NULL) {
         return;
     }
@@ -85,8 +85,8 @@ void Event(pntr_app_event* event, void* userData) {
     pntr_nuklear_event(app->ctx, event);
 }
 
-void Close(void* userData) {
-    AppData* app = (AppData*)userData;
+void Close(pntr_app* application) {
+    AppData* app = (AppData*)pntr_app_userdata(application);
     pntr_unload_nuklear(app->ctx);
     pntr_unload_font(app->font);
 }
