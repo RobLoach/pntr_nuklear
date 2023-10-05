@@ -33,14 +33,10 @@
 #ifndef PNTR_NUKLEAR_H_
 #define PNTR_NUKLEAR_H_
 
-//#include <stdbool.h>
-
+// Set up the nuklear configuration.
 #define NK_INCLUDE_STANDARD_VARARGS
-#define NK_INCLUDE_COMMAND_USERDATA
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_VSNPRINTF
-// TODO: Replace NK_INCLUDE_DEFAULT_ALLOCATOR
-#define NK_INCLUDE_DEFAULT_ALLOCATOR
 #define NK_INCLUDE_COMMAND_USERDATA
 #define NK_INCLUDE_STANDARD_BOOL
 #define NK_MEMSET PNTR_MEMSET
@@ -48,8 +44,7 @@
 #define NK_SIN PNTR_SINF
 #define NK_COS PNTR_COSF
 
-//#define NK_BUTTON_TRIGGER_ON_RELEASE
-
+// Include Nuklear
 #ifndef PNTR_NUKLEAR_NUKLEAR_H
 #define PNTR_NUKLEAR_NUKLEAR_H "nuklear.h"
 #endif
@@ -160,22 +155,37 @@ float _pntr_nuklear_text_width(nk_handle font, float height, const char* text, i
     return pntr_measure_text(pntrFont, buffer);
 }
 
+void* pntr_nuklear_alloc(nk_handle handle, void *old, nk_size size) {
+    return pntr_load_memory((size_t)size);
+}
+
+void pntr_nuklear_free(nk_handle handle, void *old) {
+    if (old != NULL) {
+        pntr_unload_memory(old);
+    }
+}
+
 PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
     if (font == NULL) {
         return NULL;
     }
 
+    // Build the memory.
     struct nk_context* ctx = (struct nk_context*)pntr_load_memory(sizeof(struct nk_context));
     struct nk_user_font* userFont = (struct nk_user_font*)pntr_load_memory(sizeof(struct nk_user_font));
+    struct nk_allocator allocator;
+    allocator.alloc = pntr_nuklear_alloc;
+    allocator.free = pntr_nuklear_free;
 
-    pntr_vector size = pntr_measure_text_ex(font, "Hello World!");
+    // Set up the font.
+    pntr_vector size = pntr_measure_text_ex(font, "H");
     userFont->height = size.y;
     userFont->width = _pntr_nuklear_text_width;
     userFont->userdata.id = 1;
     userFont->userdata.ptr = font;
 
     // Create the nuklear environment.
-    if (nk_init_default(ctx, userFont) == 0) {
+    if (nk_init(ctx, &allocator, userFont) == 0) {
         pntr_unload_memory(userFont);
         pntr_unload_memory(ctx);
         return NULL;
@@ -207,6 +217,9 @@ PNTR_NUKLEAR_API void pntr_unload_nuklear(struct nk_context* ctx) {
 
     // Unload the nuklear context.
     nk_free(ctx);
+
+    // Unload the memory
+    pntr_unload_memory(ctx);
 }
 
 PNTR_NUKLEAR_API void pntr_nuklear_event(struct nk_context* ctx, PNTR_APP_EVENT* event) {
@@ -292,7 +305,6 @@ PNTR_NUKLEAR_API void pntr_nuklear_event(struct nk_context* ctx, PNTR_APP_EVENT*
 #endif  // PNTR_APP_API
 }
 
-#include <stdio.h>
 PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx) {
     if (dst == NULL || ctx == NULL) {
         return;
