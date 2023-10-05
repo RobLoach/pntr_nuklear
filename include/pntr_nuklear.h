@@ -208,7 +208,6 @@ PNTR_NUKLEAR_API void pntr_unload_nuklear(struct nk_context* ctx) {
     // Unload the nuklear context.
     nk_free(ctx);
 }
-#include <stdio.h>
 
 PNTR_NUKLEAR_API void pntr_nuklear_event(struct nk_context* ctx, PNTR_APP_EVENT* event) {
     if (ctx == NULL || event == NULL) {
@@ -282,7 +281,7 @@ PNTR_NUKLEAR_API void pntr_nuklear_event(struct nk_context* ctx, PNTR_APP_EVENT*
                 case PNTR_APP_MOUSE_BUTTON_MIDDLE: button = NK_BUTTON_MIDDLE; break;
             }
             if (button != NK_BUTTON_MAX) {
-                // printf("Mouse Event: %s\n" , event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN ? "Pushed" : "Releasde");
+                // printf("Mouse Event: %s %dx%d\n" , event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN ? "Down" : "Up  ", event->mouseX, event->mouseY);
                 nk_input_button(ctx, button, event->mouseX, event->mouseY,
                     event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN ? nk_true : nk_false
                 );

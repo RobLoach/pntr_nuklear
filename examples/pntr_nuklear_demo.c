@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <limits.h>
 
 #define PNTR_ENABLE_DEFAULT_FONT
 //#define PNTR_ENABLE_FILTER_SMOOTH
