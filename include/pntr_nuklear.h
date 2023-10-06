@@ -131,6 +131,15 @@ PNTR_NUKLEAR_API struct nk_image pntr_image_nk(pntr_image* image);
 #ifndef PNTR_NUKLEAR_IMPLEMENTATION_ONCE
 #define PNTR_NUKLEAR_IMPLEMENTATION_ONCE
 
+// When PNTR_ENABLE_FONT is used, it will use its own STB Truetype and STB Rect Pack.
+#ifdef STB_RECT_PACK_IMPLEMENTATION
+#undef STB_RECT_PACK_IMPLEMENTATION
+#endif
+#ifdef STB_TRUETYPE_IMPLEMENTATION
+#undef STB_TRUETYPE_IMPLEMENTATION
+#endif
+#define STB_INCLUDE_STB_RECT_PACK_H
+
 #define NK_IMPLEMENTATION
 #include PNTR_NUKLEAR_NUKLEAR_H
 
