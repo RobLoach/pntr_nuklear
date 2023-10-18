@@ -102,4 +102,3 @@ canvas(struct nk_context *ctx)
         }
         canvas_end(ctx, &canvas);
 }
-

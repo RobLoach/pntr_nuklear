@@ -61,4 +61,3 @@ calculator(struct nk_context *ctx)
     }
     nk_end(ctx);
 }
-

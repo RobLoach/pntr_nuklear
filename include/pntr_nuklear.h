@@ -187,7 +187,7 @@ PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
     allocator.free = pntr_nuklear_free;
 
     // Set up the font.
-    pntr_vector size = pntr_measure_text_ex(font, "H");
+    pntr_vector size = pntr_measure_text_ex(font, "H", 1);
     userFont->height = size.y;
     userFont->width = _pntr_nuklear_text_width;
     userFont->userdata.id = 1;
