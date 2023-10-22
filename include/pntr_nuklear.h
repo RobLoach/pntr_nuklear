@@ -431,10 +431,10 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 const struct nk_command_circle *c = (const struct nk_command_circle *)cmd;
                 pntr_color color = pntr_color_from_nk_color(c->color);
                 if (c->w == c->h) {
-                    pntr_draw_circle(dst, (int)(c->x + c->w / 2.0f), (int)(c->y + c->h / 2.0f), (int)(c->w / 2.0f), color);
+                    pntr_draw_circle(dst, c->x + c->w / 2, c->y + c->h / 2, c->w / 2 + 1, color);
                 }
                 else {
-                    pntr_draw_ellipse(dst, (int)(c->x + c->w / 2.0f), (int)(c->y + c->h / 2.0f), (int)(c->w / 2.0f), (int)(c->h / 2.0f), color);
+                    pntr_draw_ellipse(dst, c->x + c->w / 2, c->y + c->h / 2, c->w / 2 + 1, c->h / 2 + 1, color);
                 }
             } break;
 
@@ -442,10 +442,10 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 const struct nk_command_circle_filled *c = (const struct nk_command_circle_filled *)cmd;
                 pntr_color color = pntr_color_from_nk_color(c->color);
                 if (c->w == c->h) {
-                    pntr_draw_circle_fill(dst, (int)(c->x + c->w / 2.0f), (int)(c->y + c->h / 2.0f), (int)(c->w / 2.0f), color);
+                    pntr_draw_circle_fill(dst, c->x + c->w / 2, c->y + c->h / 2, c->w / 2 + 1, color);
                 }
                 else {
-                    pntr_draw_ellipse_fill(dst, (int)(c->x + c->w / 2.0f), (int)(c->y + c->h / 2.0f), (int)(c->w / 2.0f), (int)(c->h / 2.0f), color);
+                    pntr_draw_ellipse_fill(dst, c->x + c->w / 2, c->y + c->h / 2, c->w / 2 + 1, c->h / 2 + 1, color);
                 }
             } break;
 
