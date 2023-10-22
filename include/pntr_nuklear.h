@@ -241,40 +241,61 @@ PNTR_NUKLEAR_API void pntr_nuklear_event(struct nk_context* ctx, PNTR_APP_EVENT*
     switch (event->type) {
         case PNTR_APP_EVENTTYPE_KEY_DOWN:
         case PNTR_APP_EVENTTYPE_KEY_UP: {
+            nk_bool down = event->type == PNTR_APP_EVENTTYPE_KEY_DOWN;
             switch (event->key) {
                 case PNTR_APP_KEY_LEFT_SHIFT:
-                case PNTR_APP_KEY_RIGHT_SHIFT: nk_input_key(ctx, NK_KEY_SHIFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_RIGHT_SHIFT: nk_input_key(ctx, NK_KEY_SHIFT, down); break;
                 case PNTR_APP_KEY_LEFT_CONTROL:
-                case PNTR_APP_KEY_RIGHT_CONTROL: nk_input_key(ctx, NK_KEY_CTRL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                case PNTR_APP_KEY_DELETE: nk_input_key(ctx, NK_KEY_DEL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                case PNTR_APP_KEY_ENTER: nk_input_key(ctx, NK_KEY_ENTER, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                case PNTR_APP_KEY_TAB: nk_input_key(ctx, NK_KEY_TAB, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                case PNTR_APP_KEY_BACKSPACE: nk_input_key(ctx, NK_KEY_BACKSPACE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                //case COPY: nk_input_key(ctx, NK_KEY_COPY, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                //case CUT: nk_input_key(ctx, NK_KEY_CUT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                //case PASTE: nk_input_key(ctx, NK_KEY_PASTE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                case PNTR_APP_KEY_UP: nk_input_key(ctx, NK_KEY_UP, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                case PNTR_APP_KEY_DOWN: nk_input_key(ctx, NK_KEY_DOWN, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                case PNTR_APP_KEY_LEFT: nk_input_key(ctx, NK_KEY_LEFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                case PNTR_APP_KEY_RIGHT: nk_input_key(ctx, NK_KEY_RIGHT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                case PNTR_APP_KEY_INSERT: nk_input_key(ctx, NK_KEY_TEXT_INSERT_MODE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                //case TEXT_REPLACE_MODE: nk_input_key(ctx, NK_KEY_TEXT_REPLACE_MODE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                //case TEXT_RESET_MODE: nk_input_key(ctx, NK_KEY_TEXT_RESET_MODE, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                case PNTR_APP_KEY_HOME: nk_input_key(ctx, NK_KEY_TEXT_LINE_START, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                case PNTR_APP_KEY_END: nk_input_key(ctx, NK_KEY_TEXT_LINE_END, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                //case TEXT_START: nk_input_key(ctx, NK_KEY_TEXT_START, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                //case TEXT_END: nk_input_key(ctx, NK_KEY_TEXT_END, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                //case TEXT_UNDO: nk_input_key(ctx, NK_KEY_TEXT_UNDO, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                //case TEXT_REDO: nk_input_key(ctx, NK_KEY_TEXT_REDO, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                //case TEXT_SELECT_ALL: nk_input_key(ctx, NK_KEY_TEXT_SELECT_ALL, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                //case TEXT_WORD_LEFT: nk_input_key(ctx, NK_KEY_TEXT_WORD_LEFT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                //case TEXT_WORD_RIGHT: nk_input_key(ctx, NK_KEY_TEXT_WORD_RIGHT, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                //case SCROLL_START: nk_input_key(ctx, NK_KEY_SCROLL_START, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                //case SCROLL_END: nk_input_key(ctx, NK_KEY_SCROLL_END, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                case PNTR_APP_KEY_PAGE_DOWN: nk_input_key(ctx, NK_KEY_SCROLL_DOWN, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
-                case PNTR_APP_KEY_PAGE_UP: nk_input_key(ctx, NK_KEY_SCROLL_UP, event->type == PNTR_APP_EVENTTYPE_KEY_DOWN); break;
+                case PNTR_APP_KEY_RIGHT_CONTROL: nk_input_key(ctx, NK_KEY_CTRL, down); break;
+                case PNTR_APP_KEY_DELETE: nk_input_key(ctx, NK_KEY_DEL, down); break;
+                case PNTR_APP_KEY_ENTER: nk_input_key(ctx, NK_KEY_ENTER, down); break;
+                case PNTR_APP_KEY_TAB: nk_input_key(ctx, NK_KEY_TAB, down); break;
+                case PNTR_APP_KEY_BACKSPACE: nk_input_key(ctx, NK_KEY_BACKSPACE, down); break;
+                //case COPY: nk_input_key(ctx, NK_KEY_COPY, down); break;
+                //case CUT: nk_input_key(ctx, NK_KEY_CUT, down); break;
+                //case PASTE: nk_input_key(ctx, NK_KEY_PASTE, down); break;
+                case PNTR_APP_KEY_UP: nk_input_key(ctx, NK_KEY_UP, down); break;
+                case PNTR_APP_KEY_DOWN: nk_input_key(ctx, NK_KEY_DOWN, down); break;
+                case PNTR_APP_KEY_LEFT: {
+                    if (pntr_app_key_down(event->app, PNTR_APP_KEY_LEFT_CONTROL)) {
+                        nk_input_key(ctx, NK_KEY_TEXT_WORD_LEFT, down);
+                    }
+                    else {
+                        nk_input_key(ctx, NK_KEY_LEFT, down);
+                    }
+                } break;
+                case PNTR_APP_KEY_RIGHT: {
+                    if (pntr_app_key_down(event->app, PNTR_APP_KEY_LEFT_CONTROL)) {
+                        nk_input_key(ctx, NK_KEY_TEXT_WORD_RIGHT, down);
+                    }
+                    else {
+                        nk_input_key(ctx, NK_KEY_RIGHT, down);
+                    }
+                } break;
+                case PNTR_APP_KEY_INSERT: nk_input_key(ctx, NK_KEY_TEXT_INSERT_MODE, down); break;
+                //case TEXT_REPLACE_MODE: nk_input_key(ctx, NK_KEY_TEXT_REPLACE_MODE, down); break;
+                //case TEXT_RESET_MODE: nk_input_key(ctx, NK_KEY_TEXT_RESET_MODE, down); break;
+                case PNTR_APP_KEY_HOME: nk_input_key(ctx, NK_KEY_TEXT_LINE_START, down); break;
+                case PNTR_APP_KEY_END: nk_input_key(ctx, NK_KEY_TEXT_LINE_END, down); break;
+                //case TEXT_START: nk_input_key(ctx, NK_KEY_TEXT_START, down); break;
+                //case TEXT_END: nk_input_key(ctx, NK_KEY_TEXT_END, down); break;
+                //case TEXT_UNDO: nk_input_key(ctx, NK_KEY_TEXT_UNDO, down); break;
+                //case TEXT_REDO: nk_input_key(ctx, NK_KEY_TEXT_REDO, down); break;
+                //case TEXT_SELECT_ALL: nk_input_key(ctx, NK_KEY_TEXT_SELECT_ALL, down); break;
+                //case TEXT_WORD_LEFT: nk_input_key(ctx, NK_KEY_TEXT_WORD_LEFT, down); break;
+                //case TEXT_WORD_RIGHT: nk_input_key(ctx, NK_KEY_TEXT_WORD_RIGHT, down); break;
+                //case SCROLL_START: nk_input_key(ctx, NK_KEY_SCROLL_START, down); break;
+                //case SCROLL_END: nk_input_key(ctx, NK_KEY_SCROLL_END, down); break;
+                case PNTR_APP_KEY_PAGE_DOWN: nk_input_key(ctx, NK_KEY_SCROLL_DOWN, down); break;
+                case PNTR_APP_KEY_PAGE_UP: nk_input_key(ctx, NK_KEY_SCROLL_UP, down); break;
                 default:
-                    if (event->type == PNTR_APP_EVENTTYPE_KEY_DOWN) {
+                    if (down) {
+                        // Check for capital with SHIFT
+                        if (event->key >= PNTR_APP_KEY_A && event->key <= PNTR_APP_KEY_Z) {
+                            if (!pntr_app_key_down(event->app, PNTR_APP_KEY_LEFT_SHIFT) && !pntr_app_key_down(event->app, PNTR_APP_KEY_RIGHT_SHIFT)) {
+                                event->key += 32;
+                            }
+                        }
                         nk_input_unicode(ctx, event->key);
                     }
                     break;
