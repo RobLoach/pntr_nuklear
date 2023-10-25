@@ -186,8 +186,14 @@ PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
     allocator.alloc = pntr_nuklear_alloc;
     allocator.free = pntr_nuklear_free;
 
-    // Set up the font.
-    pntr_vector size = pntr_measure_text_ex(font, "H", 1);
+    // Set up the font, and find the tallest character.
+    #define PNTR_LOAD_NUKLEAR_ALPHABET_START (33)
+    #define PNTR_LOAD_NUKLEAR_ALPHABET_LEN (172 - PNTR_LOAD_NUKLEAR_ALPHABET_START)
+    char theAlphabet[PNTR_LOAD_NUKLEAR_ALPHABET_LEN];
+    for (int i = 0; i <= PNTR_LOAD_NUKLEAR_ALPHABET_LEN; i++) {
+        theAlphabet[i] = i + PNTR_LOAD_NUKLEAR_ALPHABET_START;
+    }
+    pntr_vector size = pntr_measure_text_ex(font, theAlphabet, PNTR_LOAD_NUKLEAR_ALPHABET_LEN);
     userFont->height = size.y;
     userFont->width = _pntr_nuklear_text_width;
     userFont->userdata.id = 1;
