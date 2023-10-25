@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-
 #define PNTR_ENABLE_DEFAULT_FONT
 //#define PNTR_ENABLE_FILTER_SMOOTH
 //#define PNTR_ENABLE_TTF
@@ -23,6 +22,7 @@ bool Init(pntr_app* application) {
     app->font = pntr_load_font_default();
     app->ctx = pntr_load_nuklear(app->font);
     app->bg = pntr_get_color(0x141414FF);
+    pntr_nuklear_set_scale(app->ctx, 2.0f);
 
     return true;
 }
