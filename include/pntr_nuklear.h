@@ -398,9 +398,8 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 const struct nk_command_rect *r = (const struct nk_command_rect *)cmd;
                 pntr_color color = pntr_color_from_nk_color(r->color);
                 // Skip rounded rectangles for now
-                if (true) {
-                //if (r->rounding == 0) {
-                    pntr_draw_rectangle(dst, (int)r->x, (int)r->y, (int)r->w, (int)r->h, (int)r->line_thickness, color);
+                if (r->rounding == 0) {
+                    pntr_draw_rectangle_thick(dst, (int)r->x, (int)r->y, (int)r->w, (int)r->h, (int)r->line_thickness, color);
                 }
                 else {
                     // TODO: Add (int)r->line_thickness
@@ -413,9 +412,7 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 // TODO: NK_COMMAND_RECT Add Rounding to the rectangle filled
                 const struct nk_command_rect_filled *r = (const struct nk_command_rect_filled *)cmd;
                 pntr_color color = pntr_color_from_nk_color(r->color);
-                // Skip rounded rectangles for now
-                if (true) {
-                //if (r->rounding == 0) {
+                if (r->rounding == 0) {
                     pntr_draw_rectangle_fill(dst, r->x, r->y, r->w, r->h, color);
                 }
                 else {
