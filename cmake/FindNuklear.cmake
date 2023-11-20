@@ -3,7 +3,7 @@ include(FetchContent)
 FetchContent_Declare(
     Nuklear
     GIT_REPOSITORY https://github.com/Immediate-Mode-UI/Nuklear.git
-    GIT_TAG bed81e2f4e810d833a56dd2139d353ed93924bee
+    GIT_TAG 141d3cf9c695dfd47775a88ff01ad162d4b4a64f
     GIT_SHALLOW 1
 )
 FetchContent_GetProperties(Nuklear)
