@@ -351,6 +351,13 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
     // Iterate through each drawing command.
     const struct nk_command *cmd;
+    pntr_rectangle oldClip = (pntr_rectangle){
+        .x = dst->clip.x,
+        .y = dst->clip.y,
+        .width = dst->clip.width,
+        .height = dst->clip.height
+    };
+    
     nk_foreach(cmd, ctx) {
         switch (cmd->type) {
             case NK_COMMAND_NOP: {
@@ -362,6 +369,7 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 const struct nk_command_scissor *s =(const struct nk_command_scissor*)cmd;
                 //BeginScissorMode((int)(s->x), (int)(s->y), (int)(s->w), (int)(s->h));
                 //printf("Scissor: %dx%d %dx%d\n", (int)(s->x), (int)(s->y), (int)(s->w), (int)(s->h));
+                pntr_image_set_clip(dst, s->x, s->y, s->w, s->h);
             } break;
 
             case NK_COMMAND_LINE: {
@@ -569,6 +577,7 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
         }
     }
+    pntr_image_set_clip(dst, oldClip.x, oldClip.y, oldClip.width, oldClip.height);
 
     nk_clear(ctx);
 
