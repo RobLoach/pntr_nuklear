@@ -357,7 +357,7 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
         .width = dst->clip.width,
         .height = dst->clip.height
     };
-    
+
     nk_foreach(cmd, ctx) {
         switch (cmd->type) {
             case NK_COMMAND_NOP: {
@@ -599,7 +599,12 @@ PNTR_NUKLEAR_API inline pntr_color pntr_color_from_nk_color(struct nk_color colo
 }
 
 PNTR_NUKLEAR_API struct nk_color pntr_color_to_nk_color(pntr_color color) {
-    return nk_rgba(color.r, color.g, color.b, color.a);
+    return nk_rgba(
+        pntr_color_r(color),
+        pntr_color_g(color),
+        pntr_color_b(color),
+        pntr_color_a(color)
+    );
 }
 
 PNTR_NUKLEAR_API inline pntr_color pntr_color_from_nk_colorf(struct nk_colorf color) {
@@ -613,10 +618,10 @@ PNTR_NUKLEAR_API inline pntr_color pntr_color_from_nk_colorf(struct nk_colorf co
 
 PNTR_NUKLEAR_API struct nk_colorf pntr_color_to_nk_colorf(pntr_color color) {
     struct nk_colorf out;
-    out.r = (float)color.r / 255.0f;
-    out.g = (float)color.g / 255.0f;
-    out.b = (float)color.b / 255.0f;
-    out.a = (float)color.a / 255.0f;
+    out.r = (float)pntr_color_r(color) / 255.0f;
+    out.g = (float)pntr_color_g(color) / 255.0f;
+    out.b = (float)pntr_color_b(color) / 255.0f;
+    out.a = (float)pntr_color_a(color) / 255.0f;
     return out;
 }
 

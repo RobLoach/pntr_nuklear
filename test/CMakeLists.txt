@@ -12,7 +12,10 @@ target_link_libraries(pntr_nuklear_test PUBLIC
     pntr
     pntr_nuklear
 )
+
+# C99 Standard
 set_property(TARGET pntr_nuklear_test PROPERTY C_STANDARD 99)
+set_property(TARGET pntr_nuklear_test PROPERTY C_STANDARD_REQUIRED TRUE)
 
 # Set up the test
 add_test(NAME pntr_nuklear_test COMMAND pntr_nuklear_test)
