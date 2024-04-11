@@ -43,6 +43,7 @@
 #define NK_MEMCPY PNTR_MEMCPY
 #define NK_SIN PNTR_SINF
 #define NK_COS PNTR_COSF
+#define NK_SQRT PNTR_SQRTF
 
 // Include Nuklear
 #ifndef PNTR_NUKLEAR_NUKLEAR_H
@@ -156,13 +157,7 @@ extern "C" {
  */
 float _pntr_nuklear_text_width(nk_handle font, float height, const char* text, int len) {
     pntr_font* pntrFont = (pntr_font*)font.ptr;
-
-    // TODO: Get the text width without requiring a new buffer.
-    char buffer[1024];
-    pntr_memory_copy(buffer, (void*)text, (size_t)len);
-    buffer[len] = '\0';
-
-    return pntr_measure_text(pntrFont, buffer);
+    return pntr_measure_text_ex(pntrFont, text, len).x;
 }
 
 void* pntr_nuklear_alloc(nk_handle handle, void *old, nk_size size) {
@@ -353,13 +348,15 @@ PNTR_NUKLEAR_API void pntr_nuklear_event(struct nk_context* ctx, PNTR_APP_EVENT*
  */
 PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const struct nk_vec2i *pnts, int count, pntr_color col) {
     int i = 0;
-    #define MAX_POINTS 64
+    #ifndef PNTR_NUKLEAR_POLYGON_FILL_MAX_POINTS
+    #define PNTR_NUKLEAR_POLYGON_FILL_MAX_POINTS 64
+    #endif
     int left = 10000, top = 10000, bottom = 0, right = 0;
-    int nodes, nodeX[MAX_POINTS], pixelX, pixelY, j, swap ;
+    int nodes, nodeX[PNTR_NUKLEAR_POLYGON_FILL_MAX_POINTS], pixelX, pixelY, j, swap ;
 
     if (count == 0) return;
-    if (count > MAX_POINTS)
-        count = MAX_POINTS;
+    if (count > PNTR_NUKLEAR_POLYGON_FILL_MAX_POINTS)
+        count = PNTR_NUKLEAR_POLYGON_FILL_MAX_POINTS;
 
     /* Get polygon dimensions */
     for (i = 0; i < count; i++) {
@@ -410,7 +407,7 @@ PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const stru
             }
         }
     }
-    #undef MAX_POINTS
+    #undef PNTR_NUKLEAR_POLYGON_FILL_MAX_POINTS
 }
 
 /**
@@ -453,12 +450,6 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
     // Iterate through each drawing command.
     const struct nk_command *cmd;
-    pntr_rectangle oldClip = (pntr_rectangle){
-        .x = dst->clip.x,
-        .y = dst->clip.y,
-        .width = dst->clip.width,
-        .height = dst->clip.height
-    };
 
     nk_foreach(cmd, ctx) {
         switch (cmd->type) {
@@ -475,12 +466,7 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             case NK_COMMAND_LINE: {
                 // TODO: Add NK_COMMAND_LINE line thickness
                 const struct nk_command_line *l = (const struct nk_command_line *)cmd;
-                pntr_color color = pntr_color_from_nk_color(l->color);
-                pntr_draw_line_vec(dst,
-                    pntr_vector_from_nk_vec2i(l->begin),
-                    pntr_vector_from_nk_vec2i(l->end),
-                    color
-                );
+                pntr_draw_line(dst, l->begin.x, l->begin.y, l->end.x, l->end.y, pntr_color_from_nk_color(l->color));
             } break;
 
             case NK_COMMAND_CURVE: {
@@ -643,7 +629,6 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
         }
     }
-    pntr_image_set_clip(dst, oldClip.x, oldClip.y, oldClip.width, oldClip.height);
 
     nk_clear(ctx);
 
@@ -711,13 +696,7 @@ PNTR_NUKLEAR_API struct nk_image pntr_image_nk(pntr_image* image) {
         out.region[3] = out.h;
     }
     else {
-        out.handle.ptr = NULL;
-        out.w = 0;
-        out.h = 0;
-        out.region[0] = 0;
-        out.region[1] = 0;
-        out.region[2] = 0;
-        out.region[3] = 0;
+        nk_zero(&out, sizeof(struct nk_image));
     }
 
     return out;
