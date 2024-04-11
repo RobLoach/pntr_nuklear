@@ -31,19 +31,19 @@ typedef struct AppData {
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 #ifdef INCLUDE_STYLE
-  #include "demo/style.c"
+  #include "demo/common/style.c"
 #endif
 #ifdef INCLUDE_CALCULATOR
-  #include "demo/calculator.c"
+  #include "demo/common/calculator.c"
 #endif
 #ifdef INCLUDE_CANVAS
-  #include "demo/canvas.c"
+  #include "demo/common/canvas.c"
 #endif
 #ifdef INCLUDE_OVERVIEW
-  #include "demo/overview.c"
+  #include "demo/common/overview.c"
 #endif
 #ifdef INCLUDE_NODE_EDITOR
-  #include "demo/node_editor.c"
+  #include "demo/common/node_editor.c"
 #endif
 #pragma GCC diagnostic pop
 
