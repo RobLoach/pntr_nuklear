@@ -120,6 +120,7 @@ PNTR_NUKLEAR_API pntr_color pntr_color_from_nk_colorf(struct nk_colorf color);
  * @see pntr_load_image()
  */
 PNTR_NUKLEAR_API struct nk_image pntr_image_nk(pntr_image* image);
+PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const struct nk_vec2i *pnts, int count, pntr_color col);
 
 #ifdef __cplusplus
 }
@@ -342,6 +343,106 @@ PNTR_NUKLEAR_API void pntr_nuklear_event(struct nk_context* ctx, PNTR_APP_EVENT*
 #endif  // PNTR_APP_API
 }
 
+/**
+ * Draw a filled polygon using Nuklear values.
+ *
+ * @see nk_rawfb_fill_polygon()
+ * @see https://github.com/Immediate-Mode-UI/Nuklear/blob/master/demo/rawfb/nuklear_rawfb.h
+ *
+ * @internal
+ */
+PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const struct nk_vec2i *pnts, int count, pntr_color col) {
+    int i = 0;
+    #define MAX_POINTS 64
+    int left = 10000, top = 10000, bottom = 0, right = 0;
+    int nodes, nodeX[MAX_POINTS], pixelX, pixelY, j, swap ;
+
+    if (count == 0) return;
+    if (count > MAX_POINTS)
+        count = MAX_POINTS;
+
+    /* Get polygon dimensions */
+    for (i = 0; i < count; i++) {
+        if (left > pnts[i].x)
+            left = pnts[i].x;
+        if (right < pnts[i].x)
+            right = pnts[i].x;
+        if (top > pnts[i].y)
+            top = pnts[i].y;
+        if (bottom < pnts[i].y)
+            bottom = pnts[i].y;
+    } bottom++; right++;
+
+    /* Polygon scanline algorithm released under public-domain by Darel Rex Finley, 2007 */
+    /*  Loop through the rows of the image. */
+    for (pixelY = top; pixelY < bottom; pixelY ++) {
+        nodes = 0; /*  Build a list of nodes. */
+        j = count - 1;
+        for (i = 0; i < count; i++) {
+            if (((pnts[i].y < pixelY) && (pnts[j].y >= pixelY)) ||
+                ((pnts[j].y < pixelY) && (pnts[i].y >= pixelY))) {
+                nodeX[nodes++]= (int)((float)pnts[i].x
+                     + ((float)pixelY - (float)pnts[i].y) / ((float)pnts[j].y - (float)pnts[i].y)
+                     * ((float)pnts[j].x - (float)pnts[i].x));
+            } j = i;
+        }
+
+        /*  Sort the nodes, via a simple “Bubble” sort. */
+        i = 0;
+        while (i < nodes - 1) {
+            if (nodeX[i] > nodeX[i+1]) {
+                swap = nodeX[i];
+                nodeX[i] = nodeX[i+1];
+                nodeX[i+1] = swap;
+                if (i) i--;
+            } else i++;
+        }
+        /*  Fill the pixels between node pairs. */
+        for (i = 0; i < nodes; i += 2) {
+            if (nodeX[i+0] >= right) break;
+            if (nodeX[i+1] > left) {
+                if (nodeX[i+0] < left) nodeX[i+0] = left ;
+                if (nodeX[i+1] > right) nodeX[i+1] = right;
+                for (pixelX = nodeX[i]; pixelX < nodeX[i + 1]; pixelX++)
+                    //nk_rawfb_ctx_setpixel(rawfb, pixelX, pixelY, col);
+                    pntr_draw_point(dst, pixelX, pixelY, col);
+
+            }
+        }
+    }
+    #undef MAX_POINTS
+}
+
+/**
+ * @internal
+ */
+PNTR_NUKLEAR_API void pntr_nuklear_draw_stroke_curve(pntr_image* rawfb,
+    const struct nk_vec2i p1, const struct nk_vec2i p2,
+    const struct nk_vec2i p3, const struct nk_vec2i p4,
+    const unsigned int num_segments, const unsigned short line_thickness,
+    pntr_color col)
+{
+    unsigned int i_step, segments;
+    float t_step;
+    struct nk_vec2i last = p1;
+
+    segments = PNTR_MAX(num_segments, 1);
+    t_step = 1.0f/(float)segments;
+    for (i_step = 1; i_step <= segments; ++i_step) {
+        float t = t_step * (float)i_step;
+        float u = 1.0f - t;
+        float w1 = u*u*u;
+        float w2 = 3*u*u*t;
+        float w3 = 3*u*t*t;
+        float w4 = t * t *t;
+        float x = w1 * p1.x + w2 * p2.x + w3 * p3.x + w4 * p4.x;
+        float y = w1 * p1.y + w2 * p2.y + w3 * p3.y + w4 * p4.y;
+        // TODO: Add line_thickness to pntr_nuklear_draw_stroke_curve
+        pntr_draw_line(rawfb, last.x, last.y, (int)x, (int)y, col);
+        last.x = (short)x; last.y = (short)y;
+    }
+}
+
 PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx) {
     if (dst == NULL || ctx == NULL) {
         return;
@@ -366,9 +467,7 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             }
 
             case NK_COMMAND_SCISSOR: {
-                // TODO: Add NK_COMMAND_SCISSOR clipping
                 const struct nk_command_scissor *s =(const struct nk_command_scissor*)cmd;
-                //BeginScissorMode((int)(s->x), (int)(s->y), (int)(s->w), (int)(s->h));
                 //printf("Scissor: %dx%d %dx%d\n", (int)(s->x), (int)(s->y), (int)(s->w), (int)(s->h));
                 pntr_image_set_clip(dst, s->x, s->y, s->w, s->h);
             } break;
@@ -385,21 +484,9 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
 
             case NK_COMMAND_CURVE: {
-                // TODO: Add NK_COMMAND_CURVE
                 const struct nk_command_curve *q = (const struct nk_command_curve *)cmd;
-                pntr_color color = pntr_color_from_nk_color(q->color);
-                // pntr_vector start = {q->begin.x, q->begin.y};
-                pntr_vector start = PNTR_CLITERAL(pntr_vector) {q->begin.x, q->begin.y};
-                // pntr_vector controlPoint1 = (pntr_vector){q->ctrl[0].x, q->ctrl[0].y};
-                // pntr_vector controlPoint2 = (pntr_vector){q->ctrl[1].x, q->ctrl[1].y};
-                // pntr_vector end = {q->end.x, q->end.y};
-                pntr_vector end = {q->end.x, q->end.y};
-                // TODO: Encorporate segmented control point bezier curve?
-                // DrawLineBezier(start, controlPoint1, q->line_thickness, color);
-                // DrawLineBezier(controlPoint1, controlPoint2, q->line_thickness, color);
-                // DrawLineBezier(controlPoint2, end, q->line_thickness, color);
-                // DrawLineBezier(start, end, q->line_thickness, color);
-                //DrawLineBezier(start, end, q->line_thickness, color);
+                pntr_nuklear_draw_stroke_curve(dst, q->begin, q->ctrl[0], q->ctrl[1],
+                    q->end, 22, q->line_thickness, pntr_color_from_nk_color(q->color));
             } break;
 
             case NK_COMMAND_RECT: {
@@ -462,35 +549,31 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
 
             case NK_COMMAND_ARC: {
-                // TODO: Add line thickness to arc
+                // TODO: Add line thickness to NK_COMMAND_ARC
                 const struct nk_command_arc *a = (const struct nk_command_arc*)cmd;
                 pntr_color color = pntr_color_from_nk_color(a->color);
 
-                #ifndef PNTR_NUKLEAR_ARC_SEGMENTS
-                    #define PNTR_NUKLEAR_ARC_SEGMENTS 20
-                #endif
-                float startAngle = a->a[0];
-                float endAngle = a->a[1];
+                float startAngle = a->a[0] * 180.0f / PNTR_PI;
+                float endAngle = a->a[1] * 180.0f / PNTR_PI;
 
-                pntr_draw_arc(dst, (int)a->cx, (int)a->cy, a->r, startAngle, endAngle, PNTR_NUKLEAR_ARC_SEGMENTS, color);
+                pntr_draw_arc(dst, (int)a->cx, (int)a->cy, a->r, startAngle, endAngle, a->r * 3, color);
+                pntr_draw_line(dst, a->cx, a->cy, a->cx + PNTR_COSF(a->a[0]) * a->r, a->cy + PNTR_SINF(a->a[0]) * a->r, color);
+                pntr_draw_line(dst, a->cx, a->cy, a->cx + PNTR_COSF(a->a[1]) * a->r, a->cy + PNTR_SINF(a->a[1]) * a->r, color);
             } break;
 
             case NK_COMMAND_ARC_FILLED: {
-                // TODO: Add NK_COMMAND_ARC_FILLED
                 const struct nk_command_arc_filled *a = (const struct nk_command_arc_filled*)cmd;
                 pntr_color color = pntr_color_from_nk_color(a->color);
 
-                #ifndef PNTR_NUKLEAR_ARC_FILL_SEGMENTS
-                    #define PNTR_NUKLEAR_ARC_FILL_SEGMENTS 20
-                #endif
-                float startAngle = a->a[0];
-                float endAngle = a->a[1];
+                float startAngle = a->a[0] * 180.0f / PNTR_PI;
+                float endAngle = a->a[1] * 180.0f / PNTR_PI;
 
-                pntr_draw_arc_fill(dst, (int)a->cx, (int)a->cy, a->r, startAngle, endAngle, PNTR_NUKLEAR_ARC_SEGMENTS, color);
+                pntr_draw_arc_fill(dst, (int)a->cx, (int)a->cy, a->r, startAngle, endAngle, a->r * 2, color);
             } break;
 
             case NK_COMMAND_TRIANGLE: {
                 const struct nk_command_triangle *t = (const struct nk_command_triangle*)cmd;
+                // TODO: Add Line Thickness to NK_COMMAND_TRIANGLE
                 pntr_color color = pntr_color_from_nk_color(t->color);
                 pntr_draw_triangle(dst, t->b.x, t->b.y, t->a.x, t->a.y, t->c.x, t->c.y, color);
             } break;
@@ -502,45 +585,27 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
 
             case NK_COMMAND_POLYGON: {
-                // TODO: Confirm Polygon
                 // TODO: Add line thickness to NK_COMMAND_POLYGON
                 const struct nk_command_polygon *p = (const struct nk_command_polygon*)cmd;
                 pntr_color color = pntr_color_from_nk_color(p->color);
-                pntr_vector* points = (pntr_vector*)pntr_load_memory((size_t)p->point_count * sizeof(pntr_vector));
-                unsigned short i;
-                for (i = 0; i < p->point_count; i++) {
-                    points[i] = pntr_vector_from_nk_vec2i(p->points[i]);
+                for (int i = 1; i < p->point_count; i++) {
+                    pntr_draw_line(dst, p->points[i - 1].x, p->points[i - 1].y, p->points[i].x, p->points[i].y, color);
                 }
-                pntr_draw_polygon(dst, points, (int)p->point_count, color);
-                pntr_unload_memory(points);
+                pntr_draw_line(dst, p->points[p->point_count - 1].x, p->points[p->point_count - 1].y, p->points[0].x, p->points[0].y, color);
             } break;
 
             case NK_COMMAND_POLYGON_FILLED: {
-                // TODO: Confirm Polygon Fill
-                const struct nk_command_polygon *p = (const struct nk_command_polygon*)cmd;
-                pntr_color color = pntr_color_from_nk_color(p->color);
-                pntr_vector* points = (pntr_vector*)pntr_load_memory((size_t)p->point_count * sizeof(pntr_vector));
-                unsigned short i;
-                for (i = 0; i < p->point_count; i++) {
-                    points[i] = pntr_vector_from_nk_vec2i(p->points[i]);
-                }
-                pntr_draw_polygon_fill(dst, points, (int)p->point_count, color);
-                pntr_unload_memory(points);
+                const struct nk_command_polygon_filled *p = (const struct nk_command_polygon_filled*)cmd;
+                pntr_nuklear_draw_polygon_fill(dst, p->points, p->point_count, pntr_color_from_nk_color(p->color));
             } break;
 
             case NK_COMMAND_POLYLINE: {
-                // TODO: Confirm Polyline works
+                // TODO: Add line thickness to NK_COMMAND_POLYLINE
                 const struct nk_command_polyline *p = (const struct nk_command_polyline *)cmd;
-                pntr_color color = pntr_color_from_nk_color(p->color);
-                struct pntr_vector* points = (struct pntr_vector*)pntr_load_memory(sizeof(pntr_vector) * (size_t)p->point_count);
-
-                for (unsigned short i = 0; i < p->point_count; i++) {
-                    points[i].x = (int)p->points[i].x;
-                    points[i].y = (int)p->points[i].y;
+                for (int i = 0; i < p->point_count - 1; i++) {
+                    pntr_color color = pntr_color_from_nk_color(p->color);
+                    pntr_draw_line(dst, p->points[i].x, p->points[i].y, p->points[i + 1].x, p->points[i + 1].y, color);
                 }
-
-                pntr_draw_polyline(dst, points, (int)p->point_count, color);
-                pntr_unload_memory(points);
             } break;
 
             case NK_COMMAND_TEXT: {
