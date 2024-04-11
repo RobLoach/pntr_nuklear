@@ -44,7 +44,6 @@
 #define NK_SIN PNTR_SINF
 #define NK_COS PNTR_COSF
 #define NK_SQRT PNTR_SQRTF
-#define NK_KEYSTATE_BASED_INPUT
 
 // Include Nuklear
 #ifndef PNTR_NUKLEAR_NUKLEAR_H
@@ -142,6 +141,11 @@ PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const stru
 #undef STB_TRUETYPE_IMPLEMENTATION
 #endif
 #define STB_INCLUDE_STB_RECT_PACK_H
+
+// Add pntr_app configurations if needed.
+#ifdef PNTR_APP_API
+#define NK_KEYSTATE_BASED_INPUT
+#endif
 
 #define NK_IMPLEMENTATION
 #include PNTR_NUKLEAR_NUKLEAR_H
