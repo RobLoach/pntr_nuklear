@@ -72,6 +72,7 @@ bool Update(pntr_app* application, pntr_image* screen) {
     AppData* app = (AppData*)pntr_app_userdata(application);
 
     struct nk_context* ctx = app->ctx;
+    pntr_nuklear_update(ctx, application);
     struct nk_colorf bg = pntr_color_to_nk_colorf(app->bg);
 
     #ifdef INCLUDE_CALCULATOR
@@ -93,15 +94,6 @@ bool Update(pntr_app* application, pntr_image* screen) {
     return true;
 }
 
-void Event(pntr_app* application, pntr_app_event* event) {
-    AppData* app = (AppData*)pntr_app_userdata(application);
-    if (app == NULL) {
-        return;
-    }
-
-    pntr_nuklear_event(app->ctx, event);
-}
-
 void Close(pntr_app* application) {
     AppData* app = (AppData*)pntr_app_userdata(application);
     pntr_unload_nuklear(app->ctx);
@@ -116,7 +108,6 @@ pntr_app Main(int argc, char* argv[]) {
         .init = Init,
         .update = Update,
         .close = Close,
-        .event = Event,
         .fps = 60,
         .userData = pntr_load_memory(sizeof(AppData)),
     };

@@ -1,20 +1,20 @@
 #include <stdio.h>
-#include <assert.h>
 
 #define PNTR_DISABLE_MATH
 #define PNTR_IMPLEMENTATION
 #define PNTR_ENABLE_DEFAULT_FONT
 #include "pntr.h"
+#include "pntr_assert.h"
 
 #define PNTR_NUKLEAR_IMPLEMENTATION
 #include "pntr_nuklear.h"
 
 int main() {
     pntr_font* font = pntr_load_font_default();
-    assert(font);
+    PNTR_ASSERT(font);
 
     struct nk_context* ctx = pntr_load_nuklear(font);
-    assert(ctx);
+    PNTR_ASSERT(ctx);
 
     enum {EASY, HARD};
     static int op = EASY;
@@ -47,13 +47,13 @@ int main() {
 
     // Build a screen
     pntr_image* image = pntr_gen_image_color(320, 220, PNTR_RAYWHITE);
-    assert(image);
+    PNTR_ASSERT(image);
 
     // Render to the image
     pntr_draw_nuklear(image, ctx);
 
     // Save the image
-    assert(pntr_save_image(image, "pntr_nuklear_test.png"));
+    PNTR_ASSERT(pntr_save_image(image, "pntr_nuklear_test.png"));
 
     // Unload
     pntr_unload_font(font);

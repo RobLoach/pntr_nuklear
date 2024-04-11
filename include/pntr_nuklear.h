@@ -44,6 +44,7 @@
 #define NK_SIN PNTR_SINF
 #define NK_COS PNTR_COSF
 #define NK_SQRT PNTR_SQRTF
+#define NK_KEYSTATE_BASED_INPUT
 
 // Include Nuklear
 #ifndef PNTR_NUKLEAR_NUKLEAR_H
@@ -60,9 +61,9 @@ extern "C" {
 #endif
 
 #ifdef PNTR_APP_API
-#define PNTR_APP_EVENT pntr_app_event
+#define PNTR_APP_TYPE pntr_app
 #else
-#define PNTR_APP_EVENT void
+#define PNTR_APP_TYPE void
 #endif
 
 /**
@@ -86,16 +87,16 @@ PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font);
 PNTR_NUKLEAR_API void pntr_unload_nuklear(struct nk_context* ctx);
 
 /**
- * Process the given pntr_app event.
+ * Update the Nuklear state based on the given pntr_app.
  *
  * The pntr_app integration is optional, and only used if pntr_app is included before pntr_nuklear.
  *
- * https://github.com/robloach/pntr_app
+ * @see https://github.com/robloach/pntr_app
  *
  * @param ctx The nuklear context to handle the event.
- * @param event The event to process.
+ * @param app The pntr_app structure to process.
  */
-PNTR_NUKLEAR_API void pntr_nuklear_event(struct nk_context* ctx, PNTR_APP_EVENT* event);
+PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE* app);
 
 /**
  * Draws the given nuklear context on the destination image.
@@ -193,7 +194,6 @@ PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
     pntr_vector size = pntr_measure_text_ex(font, theAlphabet, PNTR_LOAD_NUKLEAR_ALPHABET_LEN);
     userFont->height = size.y;
     userFont->width = _pntr_nuklear_text_width;
-    userFont->userdata.id = 1;
     userFont->userdata.ptr = font;
 
     // Create the nuklear environment.
@@ -223,10 +223,6 @@ PNTR_NUKLEAR_API void pntr_unload_nuklear(struct nk_context* ctx) {
     pntr_unload_memory((void*)ctx->style.font);
     ctx->style.font = NULL;
 
-    // Unload any custom user data.
-    pntr_unload_memory(ctx->userdata.ptr);
-    ctx->userdata.ptr = NULL;
-
     // Unload the nuklear context.
     nk_free(ctx);
 
@@ -234,108 +230,267 @@ PNTR_NUKLEAR_API void pntr_unload_nuklear(struct nk_context* ctx) {
     pntr_unload_memory(ctx);
 }
 
-PNTR_NUKLEAR_API void pntr_nuklear_event(struct nk_context* ctx, PNTR_APP_EVENT* event) {
-    if (ctx == NULL || event == NULL) {
+PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE* app) {
+    if (ctx == NULL || app == NULL) {
         return;
     }
 
-    // TODO: pntr_nuklear_event: Add support to route your own event system.
-#ifdef PNTR_APP_API
-    switch (event->type) {
-        case PNTR_APP_EVENTTYPE_KEY_DOWN:
-        case PNTR_APP_EVENTTYPE_KEY_UP: {
-            nk_bool down = event->type == PNTR_APP_EVENTTYPE_KEY_DOWN;
-            switch (event->key) {
-                case PNTR_APP_KEY_LEFT_SHIFT:
-                case PNTR_APP_KEY_RIGHT_SHIFT: nk_input_key(ctx, NK_KEY_SHIFT, down); break;
-                case PNTR_APP_KEY_LEFT_CONTROL:
-                case PNTR_APP_KEY_RIGHT_CONTROL: nk_input_key(ctx, NK_KEY_CTRL, down); break;
-                case PNTR_APP_KEY_DELETE: nk_input_key(ctx, NK_KEY_DEL, down); break;
-                case PNTR_APP_KEY_ENTER: nk_input_key(ctx, NK_KEY_ENTER, down); break;
-                case PNTR_APP_KEY_TAB: nk_input_key(ctx, NK_KEY_TAB, down); break;
-                case PNTR_APP_KEY_BACKSPACE: nk_input_key(ctx, NK_KEY_BACKSPACE, down); break;
-                //case COPY: nk_input_key(ctx, NK_KEY_COPY, down); break;
-                //case CUT: nk_input_key(ctx, NK_KEY_CUT, down); break;
-                //case PASTE: nk_input_key(ctx, NK_KEY_PASTE, down); break;
-                case PNTR_APP_KEY_UP: nk_input_key(ctx, NK_KEY_UP, down); break;
-                case PNTR_APP_KEY_DOWN: nk_input_key(ctx, NK_KEY_DOWN, down); break;
-                case PNTR_APP_KEY_LEFT: {
-                    if (pntr_app_key_down(event->app, PNTR_APP_KEY_LEFT_CONTROL)) {
-                        nk_input_key(ctx, NK_KEY_TEXT_WORD_LEFT, down);
+    #ifndef PNTR_APP_API
+    return;
+    #else
+        // Set the userdata to the pntr_app.
+        if (ctx->userdata.ptr == NULL) {
+            ctx->userdata.ptr = app;
+        }
+
+        // Keyboard
+        bool shift = pntr_app_key_down(app, PNTR_APP_KEY_LEFT_SHIFT) || pntr_app_key_down(app, PNTR_APP_KEY_RIGHT_SHIFT);
+        bool control = pntr_app_key_down(app, PNTR_APP_KEY_LEFT_CONTROL) || pntr_app_key_down(app, PNTR_APP_KEY_RIGHT_CONTROL);
+        nk_input_key(ctx, NK_KEY_SHIFT, shift);
+        nk_input_key(ctx, NK_KEY_CTRL, control);
+        nk_input_key(ctx, NK_KEY_DEL, pntr_app_key_down(app, PNTR_APP_KEY_DELETE));
+        nk_input_key(ctx, NK_KEY_ENTER, pntr_app_key_down(app, PNTR_APP_KEY_ENTER) || pntr_app_key_down(app, PNTR_APP_KEY_KP_ENTER));
+        nk_input_key(ctx, NK_KEY_TAB, pntr_app_key_down(app, PNTR_APP_KEY_TAB));
+        nk_input_key(ctx, NK_KEY_BACKSPACE, pntr_app_key_down(app, PNTR_APP_KEY_BACKSPACE));
+        nk_input_key(ctx, NK_KEY_COPY, control && pntr_app_key_pressed(app, PNTR_APP_KEY_C));
+        nk_input_key(ctx, NK_KEY_CUT, control && pntr_app_key_pressed(app, PNTR_APP_KEY_X));
+        nk_input_key(ctx, NK_KEY_PASTE, control && pntr_app_key_pressed(app, PNTR_APP_KEY_V));
+        nk_input_key(ctx, NK_KEY_UP, pntr_app_key_down(app, PNTR_APP_KEY_UP));
+        nk_input_key(ctx, NK_KEY_DOWN, pntr_app_key_down(app, PNTR_APP_KEY_DOWN));
+        nk_input_key(ctx, NK_KEY_LEFT, pntr_app_key_down(app, PNTR_APP_KEY_LEFT));
+        nk_input_key(ctx, NK_KEY_RIGHT, pntr_app_key_down(app, PNTR_APP_KEY_RIGHT));
+        //nk_input_key(ctx, NK_KEY_TEXT_INSERT_MODE, pntr_app_key_down(app, PNTR_APP_KEY_ENTER));
+        //nk_input_key(ctx, NK_KEY_TEXT_REPLACE_MODE, pntr_app_key_down(app, PNTR_APP_KEY_ENTER));
+        //nk_input_key(ctx, NK_KEY_TEXT_RESET_MODE, pntr_app_key_down(app, PNTR_APP_KEY_ENTER));
+        nk_input_key(ctx, NK_KEY_TEXT_LINE_START, !control && pntr_app_key_down(app, PNTR_APP_KEY_HOME));
+        nk_input_key(ctx, NK_KEY_TEXT_LINE_END, !control && pntr_app_key_down(app, PNTR_APP_KEY_END));
+        nk_input_key(ctx, NK_KEY_TEXT_START, control && pntr_app_key_down(app, PNTR_APP_KEY_HOME));
+        nk_input_key(ctx, NK_KEY_TEXT_END, control && pntr_app_key_down(app, PNTR_APP_KEY_END));
+        nk_input_key(ctx, NK_KEY_TEXT_UNDO, control && pntr_app_key_down(app, PNTR_APP_KEY_Z));
+        nk_input_key(ctx, NK_KEY_TEXT_REDO, control && pntr_app_key_down(app, PNTR_APP_KEY_Y));
+        nk_input_key(ctx, NK_KEY_TEXT_SELECT_ALL, control && pntr_app_key_down(app, PNTR_APP_KEY_A));
+        nk_input_key(ctx, NK_KEY_TEXT_WORD_LEFT, control && pntr_app_key_down(app, PNTR_APP_KEY_LEFT));
+        nk_input_key(ctx, NK_KEY_TEXT_WORD_RIGHT, control && pntr_app_key_down(app, PNTR_APP_KEY_RIGHT));
+        nk_input_key(ctx, NK_KEY_SCROLL_START, control && pntr_app_key_down(app, PNTR_APP_KEY_PAGE_UP));
+        nk_input_key(ctx, NK_KEY_SCROLL_END, control && pntr_app_key_down(app, PNTR_APP_KEY_PAGE_DOWN));
+        nk_input_key(ctx, NK_KEY_SCROLL_DOWN, pntr_app_key_down(app, PNTR_APP_KEY_PAGE_DOWN));
+        nk_input_key(ctx, NK_KEY_SCROLL_UP, pntr_app_key_down(app, PNTR_APP_KEY_PAGE_UP));
+
+        // Keyboard text input
+        if (!control) {
+            for (int i = PNTR_APP_KEY_A; i <= PNTR_APP_KEY_Z; i++) {
+                if (pntr_app_key_pressed(app, i)) {
+                    if (!shift) {
+                        nk_input_char(ctx, (char)(i + 32));
                     }
                     else {
-                        nk_input_key(ctx, NK_KEY_LEFT, down);
+                        nk_input_char(ctx, (char)i);
                     }
-                } break;
-                case PNTR_APP_KEY_RIGHT: {
-                    if (pntr_app_key_down(event->app, PNTR_APP_KEY_LEFT_CONTROL)) {
-                        nk_input_key(ctx, NK_KEY_TEXT_WORD_RIGHT, down);
-                    }
-                    else {
-                        nk_input_key(ctx, NK_KEY_RIGHT, down);
-                    }
-                } break;
-                case PNTR_APP_KEY_INSERT: nk_input_key(ctx, NK_KEY_TEXT_INSERT_MODE, down); break;
-                //case TEXT_REPLACE_MODE: nk_input_key(ctx, NK_KEY_TEXT_REPLACE_MODE, down); break;
-                //case TEXT_RESET_MODE: nk_input_key(ctx, NK_KEY_TEXT_RESET_MODE, down); break;
-                case PNTR_APP_KEY_HOME: nk_input_key(ctx, NK_KEY_TEXT_LINE_START, down); break;
-                case PNTR_APP_KEY_END: nk_input_key(ctx, NK_KEY_TEXT_LINE_END, down); break;
-                //case TEXT_START: nk_input_key(ctx, NK_KEY_TEXT_START, down); break;
-                //case TEXT_END: nk_input_key(ctx, NK_KEY_TEXT_END, down); break;
-                //case TEXT_UNDO: nk_input_key(ctx, NK_KEY_TEXT_UNDO, down); break;
-                //case TEXT_REDO: nk_input_key(ctx, NK_KEY_TEXT_REDO, down); break;
-                //case TEXT_SELECT_ALL: nk_input_key(ctx, NK_KEY_TEXT_SELECT_ALL, down); break;
-                //case TEXT_WORD_LEFT: nk_input_key(ctx, NK_KEY_TEXT_WORD_LEFT, down); break;
-                //case TEXT_WORD_RIGHT: nk_input_key(ctx, NK_KEY_TEXT_WORD_RIGHT, down); break;
-                //case SCROLL_START: nk_input_key(ctx, NK_KEY_SCROLL_START, down); break;
-                //case SCROLL_END: nk_input_key(ctx, NK_KEY_SCROLL_END, down); break;
-                case PNTR_APP_KEY_PAGE_DOWN: nk_input_key(ctx, NK_KEY_SCROLL_DOWN, down); break;
-                case PNTR_APP_KEY_PAGE_UP: nk_input_key(ctx, NK_KEY_SCROLL_UP, down); break;
-                default:
-                    if (down) {
-                        // Check for capital with SHIFT
-                        if (event->key >= PNTR_APP_KEY_A && event->key <= PNTR_APP_KEY_Z) {
-                            if (!pntr_app_key_down(event->app, PNTR_APP_KEY_LEFT_SHIFT) && !pntr_app_key_down(event->app, PNTR_APP_KEY_RIGHT_SHIFT)) {
-                                event->key += 32;
-                            }
-                        }
-                        nk_input_unicode(ctx, event->key);
-                    }
-                    break;
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_SPACE)) {
+                nk_input_char(ctx, ' ');
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_APOSTROPHE)) {
+                if (shift) {
+                    nk_input_char(ctx, '\"');
+                }
+                else {
+                    nk_input_char(ctx, '\'');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_COMMA)) {
+                if (shift) {
+                    nk_input_char(ctx, '<');
+                }
+                else {
+                    nk_input_char(ctx, ',');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_MINUS)) {
+                if (shift) {
+                    nk_input_char(ctx, '_');
+                }
+                else {
+                    nk_input_char(ctx, '-');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_PERIOD)) {
+                if (shift) {
+                    nk_input_char(ctx, '>');
+                }
+                else {
+                    nk_input_char(ctx, '.');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_SLASH)) {
+                if (shift) {
+                    nk_input_char(ctx, '?');
+                }
+                else {
+                    nk_input_char(ctx, '/');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_0)) {
+                if (shift) {
+                    nk_input_char(ctx, ')');
+                }
+                else {
+                    nk_input_char(ctx, '0');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_1)) {
+                if (shift) {
+                    nk_input_char(ctx, '!');
+                }
+                else {
+                    nk_input_char(ctx, '1');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_2)) {
+                if (shift) {
+                    nk_input_char(ctx, '@');
+                }
+                else {
+                    nk_input_char(ctx, '2');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_3)) {
+                if (shift) {
+                    nk_input_char(ctx, '#');
+                }
+                else {
+                    nk_input_char(ctx, '3');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_4)) {
+                if (shift) {
+                    nk_input_char(ctx, '$');
+                }
+                else {
+                    nk_input_char(ctx, '4');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_5)) {
+                if (shift) {
+                    nk_input_char(ctx, '%');
+                }
+                else {
+                    nk_input_char(ctx, '5');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_6)) {
+                if (shift) {
+                    nk_input_char(ctx, '^');
+                }
+                else {
+                    nk_input_char(ctx, '6');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_7)) {
+                if (shift) {
+                    nk_input_char(ctx, '&');
+                }
+                else {
+                    nk_input_char(ctx, '7');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_8)) {
+                if (shift) {
+                    nk_input_char(ctx, '*');
+                }
+                else {
+                    nk_input_char(ctx, '8');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_9)) {
+                if (shift) {
+                    nk_input_char(ctx, '(');
+                }
+                else {
+                    nk_input_char(ctx, '9');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_SEMICOLON)) {
+                if (shift) {
+                    nk_input_char(ctx, ':');
+                }
+                else {
+                    nk_input_char(ctx, ';');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_EQUAL)) {
+                if (shift) {
+                    nk_input_char(ctx, '+');
+                }
+                else {
+                    nk_input_char(ctx, '=');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_LEFT_BRACKET)) {
+                if (shift) {
+                    nk_input_char(ctx, '{');
+                }
+                else {
+                    nk_input_char(ctx, '[');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_BACKSLASH)) {
+                if (shift) {
+                    nk_input_char(ctx, '|');
+                }
+                else {
+                    nk_input_char(ctx, '\\');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_RIGHT_BRACKET)) {
+                if (shift) {
+                    nk_input_char(ctx, '}');
+                }
+                else {
+                    nk_input_char(ctx, ']');
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_GRAVE_ACCENT)) {
+                if (shift) {
+                    nk_input_char(ctx, '~');
+                }
+                else {
+                    nk_input_char(ctx, '`');
+                }
+            }
+
+            for (int i = PNTR_APP_KEY_KP_0; i <= PNTR_APP_KEY_KP_9; i++) {
+                if (pntr_app_key_pressed(app, i)) {
+                    nk_input_char(ctx, (char)(i - PNTR_APP_KEY_KP_0 + '0'));
+                }
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_KP_DECIMAL)) {
+                nk_input_char(ctx, '.');
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_KP_DIVIDE)) {
+                nk_input_char(ctx, '/');
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_KP_MULTIPLY)) {
+                nk_input_char(ctx, '*');
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_KP_SUBTRACT)) {
+                nk_input_char(ctx, '-');
+            }
+            if (pntr_app_key_pressed(app, PNTR_APP_KEY_KP_ADD)) {
+                nk_input_char(ctx, '+');
             }
         }
-        break;
 
-        case PNTR_APP_EVENTTYPE_MOUSE_MOVE: {
-            // printf("Mouse Move: %d, %d\n" , event->mouseX, event->mouseY);
-            nk_input_motion(ctx, event->mouseX, event->mouseY);
-        }
-        break;
-
-        case PNTR_APP_EVENTTYPE_MOUSE_WHEEL: {
-            struct nk_vec2 wheel = nk_vec2(0.0f, (event->mouseWheel > 0) ? 1.0f : -1.0f);
-            nk_input_scroll(ctx, wheel);
-        }
-        break;
-
-        case PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN:
-        case PNTR_APP_EVENTTYPE_MOUSE_BUTTON_UP: {
-            enum nk_buttons button = NK_BUTTON_MAX;
-            switch (event->mouseButton) {
-                case PNTR_APP_MOUSE_BUTTON_LEFT: button = NK_BUTTON_LEFT; break;
-                case PNTR_APP_MOUSE_BUTTON_RIGHT: button = NK_BUTTON_RIGHT; break;
-                case PNTR_APP_MOUSE_BUTTON_MIDDLE: button = NK_BUTTON_MIDDLE; break;
-            }
-            if (button != NK_BUTTON_MAX) {
-                // printf("Mouse Event: %s %dx%d\n" , event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN ? "Down" : "Up  ", event->mouseX, event->mouseY);
-                nk_input_button(ctx, button, event->mouseX, event->mouseY,
-                    event->type == PNTR_APP_EVENTTYPE_MOUSE_BUTTON_DOWN ? nk_true : nk_false
-                );
-            }
-        }
-        break;
-    }
-#endif  // PNTR_APP_API
+        // Mouse
+        int mouseX = pntr_app_mouse_x(app);
+        int mouseY = pntr_app_mouse_y(app);
+        nk_input_motion(ctx, mouseX, mouseY);
+        nk_input_scroll(ctx, nk_vec2(0.0f, pntr_app_mouse_wheel(app)));
+        nk_input_button(ctx, NK_BUTTON_LEFT, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_LEFT));
+        nk_input_button(ctx, NK_BUTTON_MIDDLE, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_MIDDLE));
+        nk_input_button(ctx, NK_BUTTON_RIGHT, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_RIGHT));
+    #endif
 }
 
 /**

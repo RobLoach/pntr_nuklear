@@ -30,6 +30,7 @@ bool Update(pntr_app* application, pntr_image* screen) {
     AppData* app = (AppData*)pntr_app_userdata(application);
 
     struct nk_context* ctx = app->ctx;
+    pntr_nuklear_update(app->ctx, application);
     struct nk_colorf bg = pntr_color_to_nk_colorf(app->bg);
 
     // GUI
@@ -42,8 +43,10 @@ bool Update(pntr_app* application, pntr_image* screen) {
         static int property = 20;
 
         nk_layout_row_static(ctx, 60, 160, 1);
-        if (nk_button_label(ctx, "button"))
-            printf("Button Pressed!\n");
+        if (nk_button_label(ctx, "button")) {
+            pntr_app_log(PNTR_APP_LOG_INFO, "Button Pressed!");
+        }
+
         nk_layout_row_dynamic(ctx, 60, 2);
         if (nk_option_label(ctx, "easy", op == EASY)) op = EASY;
         if (nk_option_label(ctx, "hard", op == HARD)) op = HARD;
@@ -75,15 +78,6 @@ bool Update(pntr_app* application, pntr_image* screen) {
     return true;
 }
 
-void Event(pntr_app* application, pntr_app_event* event) {
-    AppData* app = (AppData*)pntr_app_userdata(application);
-    if (app == NULL) {
-        return;
-    }
-
-    pntr_nuklear_event(app->ctx, event);
-}
-
 void Close(pntr_app* application) {
     AppData* app = (AppData*)pntr_app_userdata(application);
     pntr_unload_nuklear(app->ctx);
@@ -98,7 +92,6 @@ pntr_app Main(int argc, char* argv[]) {
         .init = Init,
         .update = Update,
         .close = Close,
-        .event = Event,
         .fps = 60,
         .userData = pntr_load_memory(sizeof(AppData)),
     };
