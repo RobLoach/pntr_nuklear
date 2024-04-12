@@ -123,6 +123,24 @@ PNTR_NUKLEAR_API pntr_color pntr_color_from_nk_colorf(struct nk_colorf color);
 PNTR_NUKLEAR_API struct nk_image pntr_image_nk(pntr_image* image);
 PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const struct nk_vec2i *pnts, int count, pntr_color col);
 
+// Gamepads
+enum nk_gamepad_button;
+struct nk_gamepads;
+PNTR_NUKLEAR_API void nk_gamepad_pntr_update(struct nk_gamepads* gamepads);
+NK_API void nk_gamepad_update(struct nk_gamepads* gamepads);
+NK_API struct nk_gamepads* nk_gamepad_init(struct nk_context* ctx, void* user_data);
+NK_API void nk_gamepad_free(struct nk_gamepads* gamepads);
+NK_API nk_bool nk_gamepad_is_button_down(struct nk_gamepads* gamepads, int num, enum nk_gamepad_button button);
+NK_API nk_bool nk_gamepad_is_button_pressed(struct nk_gamepads* gamepads, int num, enum nk_gamepad_button button);
+NK_API nk_bool nk_gamepad_is_button_released(struct nk_gamepads* gamepads, int num, enum nk_gamepad_button button);
+NK_API struct nk_gamepads* pntr_nuklear_gamepad(struct nk_context* ctx);
+// #ifdef PNTR_NUKLEAR_ENABLE_GAMEPAD
+// #ifndef PNTR_NUKLEAR_GAMEPAD_H
+// #define PNTR_NUKLEAR_GAMEPAD_H "nuklear_gamepad.h"
+// #endif
+// #include PNTR_NUKLEAR_GAMEPAD_H
+// #endif
+
 #ifdef __cplusplus
 }
 #endif
@@ -147,6 +165,15 @@ PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const stru
 #define NK_KEYSTATE_BASED_INPUT
 #endif
 
+typedef struct pntr_nuklear_user_data {
+    PNTR_APP_TYPE* app;
+    #ifdef PNTR_NUKLEAR_ENABLE_GAMEPAD
+    struct nk_gamepads* gamepads;
+    #endif
+    void* user_data;
+} pntr_nuklear_user_data;
+
+// Include the Nuklear implementation.
 #define NK_IMPLEMENTATION
 #include PNTR_NUKLEAR_NUKLEAR_H
 
@@ -207,6 +234,9 @@ PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
         return NULL;
     }
 
+    // Set up the user data.
+    ctx->userdata.ptr = (void*)pntr_load_memory(sizeof(pntr_nuklear_user_data));
+
     // Let Nuklear know that it may now process events.
     nk_input_begin(ctx);
 
@@ -227,6 +257,15 @@ PNTR_NUKLEAR_API void pntr_unload_nuklear(struct nk_context* ctx) {
     pntr_unload_memory((void*)ctx->style.font);
     ctx->style.font = NULL;
 
+    // Clean up the user data.
+    if (ctx->userdata.ptr != NULL) {
+    #if defined(PNTR_NUKLEAR_ENABLE_GAMEPAD) && defined(PNTR_APP_API)
+        pntr_nuklear_user_data* user_data = (pntr_nuklear_user_data*)ctx->userdata.ptr;
+        nk_gamepad_free(user_data->gamepads);
+    #endif
+        pntr_unload_memory(ctx->userdata.ptr);
+    }
+
     // Unload the nuklear context.
     nk_free(ctx);
 
@@ -243,8 +282,11 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
     return;
     #else
         // Set the userdata to the pntr_app.
-        if (ctx->userdata.ptr == NULL) {
-            ctx->userdata.ptr = app;
+        pntr_nuklear_user_data* user_data = (pntr_nuklear_user_data*)ctx->userdata.ptr;
+        if (user_data) {
+            if (user_data->app == NULL) {
+                user_data->app = app;
+            }
         }
 
         // Keyboard
@@ -494,6 +536,16 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
         nk_input_button(ctx, NK_BUTTON_LEFT, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_LEFT));
         nk_input_button(ctx, NK_BUTTON_MIDDLE, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_MIDDLE));
         nk_input_button(ctx, NK_BUTTON_RIGHT, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_RIGHT));
+
+        // Gamepad
+        #ifdef PNTR_NUKLEAR_ENABLE_GAMEPAD
+        if (user_data->gamepads == NULL) {
+            user_data->gamepads = nk_gamepad_init(ctx, app);
+        }
+        else {
+            nk_gamepad_update(user_data->gamepads);
+        }
+        #endif
     #endif
 }
 
@@ -860,6 +912,77 @@ PNTR_NUKLEAR_API struct nk_image pntr_image_nk(pntr_image* image) {
 
     return out;
 }
+
+// Gamepad Support with nuklear_gamepad.h
+#ifndef PNTR_NUKLEAR_ENABLE_GAMEPAD
+PNTR_NUKLEAR_API void nk_gamepad_pntr_update(struct nk_gamepads* gamepads) {
+    (void)gamepads;
+    return;
+}
+PNTR_NUKLEAR_API struct nk_gamepads* pntr_nuklear_gamepads(struct nk_context* ctx) {
+    (void)ctx;
+    return NULL;
+}
+#else
+#define NK_GAMEPAD_NONE
+#define NK_GAMEPAD_UPDATE nk_gamepad_pntr_update
+#define NK_GAMEPAD_MALLOC(unused, old, size) pntr_load_memory(size)
+#define NK_GAMEPAD_MFREE(unused, ptr) pntr_unload_memory(ptr)
+
+#include "nuklear_gamepad.h"
+
+PNTR_NUKLEAR_API void nk_gamepad_pntr_update(struct nk_gamepads* gamepads) {
+    if (!gamepads) {
+        return;
+    }
+
+    pntr_app* app = (pntr_app*)gamepads->user_data;
+    if (!app) {
+        return;
+    }
+
+    if (!gamepads->gamepads) {
+        nk_gamepad_init_gamepads(gamepads, PNTR_APP_MAX_GAMEPADS);
+    }
+
+    int button_mapping[NK_GAMEPAD_BUTTON_MAX] = {
+        PNTR_APP_GAMEPAD_BUTTON_UP, /* NK_GAMEPAD_BUTTON_UP */
+        PNTR_APP_GAMEPAD_BUTTON_DOWN, /* NK_GAMEPAD_BUTTON_DOWN */
+        PNTR_APP_GAMEPAD_BUTTON_LEFT, /* NK_GAMEPAD_BUTTON_LEFT */
+        PNTR_APP_GAMEPAD_BUTTON_RIGHT, /* NK_GAMEPAD_BUTTON_RIGHT */
+        PNTR_APP_GAMEPAD_BUTTON_A, /* NK_GAMEPAD_BUTTON_A */
+        PNTR_APP_GAMEPAD_BUTTON_B, /* NK_GAMEPAD_BUTTON_B */
+        PNTR_APP_GAMEPAD_BUTTON_X, /* NK_GAMEPAD_BUTTON_X */
+        PNTR_APP_GAMEPAD_BUTTON_Y, /* NK_GAMEPAD_BUTTON_Y */
+        PNTR_APP_GAMEPAD_BUTTON_LEFT_SHOULDER, /* NK_GAMEPAD_BUTTON_LB */
+        PNTR_APP_GAMEPAD_BUTTON_RIGHT_SHOULDER, /* NK_GAMEPAD_BUTTON_RB */
+        PNTR_APP_GAMEPAD_BUTTON_SELECT, /* NK_GAMEPAD_BUTTON_BACK */
+        PNTR_APP_GAMEPAD_BUTTON_START /* NK_GAMEPAD_BUTTON_START */
+    };
+
+    for (int num = 0; num < PNTR_APP_MAX_GAMEPADS; num++) {
+        for (int i = 0; i < NK_GAMEPAD_BUTTON_MAX; i++) {
+            if (pntr_app_gamepad_button_down(app, num, button_mapping[i])) {
+                nk_gamepad_button(gamepads, num, i, nk_true);
+            }
+        }
+    }
+}
+
+PNTR_NUKLEAR_API struct nk_gamepads* pntr_nuklear_gamepads(struct nk_context* ctx) {
+    if (ctx == NULL) {
+        return NULL;
+    }
+
+    pntr_nuklear_user_data* user_data = (pntr_nuklear_user_data*)ctx->userdata.ptr;
+    if (user_data == NULL) {
+        return NULL;
+    }
+
+    return user_data->gamepads;
+}
+
+#endif
 
 #ifdef __cplusplus
 }
