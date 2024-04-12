@@ -242,10 +242,8 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
     #ifndef PNTR_APP_API
     return;
     #else
-        // Set the userdata to the pntr_app.
-        if (ctx->userdata.ptr == NULL) {
-            ctx->userdata.ptr = app;
-        }
+        // Delta Time
+        ctx->delta_time_seconds = pntr_app_delta_time(app);
 
         // Keyboard
         bool shift = pntr_app_key_down(app, PNTR_APP_KEY_LEFT_SHIFT) || pntr_app_key_down(app, PNTR_APP_KEY_RIGHT_SHIFT);
