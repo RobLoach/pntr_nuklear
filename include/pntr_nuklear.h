@@ -616,7 +616,6 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
             case NK_COMMAND_SCISSOR: {
                 const struct nk_command_scissor *s =(const struct nk_command_scissor*)cmd;
-                //printf("Scissor: %dx%d %dx%d\n", (int)(s->x), (int)(s->y), (int)(s->w), (int)(s->h));
                 pntr_image_set_clip(dst, s->x, s->y, s->w, s->h);
             } break;
 
@@ -661,12 +660,13 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
             case NK_COMMAND_RECT_MULTI_COLOR: {
                 const struct nk_command_rect_multi_color* rectangle = (const struct nk_command_rect_multi_color *)cmd;
-                pntr_rectangle rect = PNTR_CLITERAL(pntr_rectangle) {(int)rectangle->x, (int)rectangle->y, (int)rectangle->w, (int)rectangle->h};
-                pntr_color left = pntr_color_from_nk_color(rectangle->left);
-                pntr_color top = pntr_color_from_nk_color(rectangle->top);
-                pntr_color bottom = pntr_color_from_nk_color(rectangle->bottom);
-                pntr_color right = pntr_color_from_nk_color(rectangle->right);
-                pntr_draw_rectangle_gradient_rec(dst, rect, left, top, bottom, right);
+                pntr_draw_rectangle_gradient_rec(dst,
+                    PNTR_CLITERAL(pntr_rectangle) {(int)rectangle->x, (int)rectangle->y, (int)rectangle->w, (int)rectangle->h},
+                    pntr_color_from_nk_color(rectangle->left),
+                    pntr_color_from_nk_color(rectangle->top),
+                    pntr_color_from_nk_color(rectangle->bottom),
+                    pntr_color_from_nk_color(rectangle->right)
+                );
             } break;
 
             case NK_COMMAND_CIRCLE: {
@@ -816,21 +816,11 @@ PNTR_NUKLEAR_API struct nk_color pntr_color_to_nk_color(pntr_color color) {
 }
 
 PNTR_NUKLEAR_API inline pntr_color pntr_color_from_nk_colorf(struct nk_colorf color) {
-    return pntr_new_color(
-        (unsigned char)(color.r * 255.0f),
-        (unsigned char)(color.g * 255.0f),
-        (unsigned char)(color.b * 255.0f),
-        (unsigned char)(color.a * 255.0f)
-    );
+    return pntr_color_from_nk_color(nk_rgba_f(color.r, color.g, color.b, color.a));
 }
 
 PNTR_NUKLEAR_API struct nk_colorf pntr_color_to_nk_colorf(pntr_color color) {
-    struct nk_colorf out;
-    out.r = (float)pntr_color_r(color) / 255.0f;
-    out.g = (float)pntr_color_g(color) / 255.0f;
-    out.b = (float)pntr_color_b(color) / 255.0f;
-    out.a = (float)pntr_color_a(color) / 255.0f;
-    return out;
+    return nk_color_cf(pntr_color_to_nk_color(color));
 }
 
 PNTR_NUKLEAR_API inline pntr_vector pntr_vector_from_nk_vec2i(struct nk_vec2i vector) {
