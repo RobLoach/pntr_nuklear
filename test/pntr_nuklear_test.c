@@ -19,7 +19,6 @@ int main() {
     enum {EASY, HARD};
     static int op = EASY;
     static float value = 0.6f;
-    static int i =  20;
 
     if (nk_begin(ctx, "pntr_nuklear Example", nk_rect(10, 10, 300, 200),
         NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_CLOSABLE)) {

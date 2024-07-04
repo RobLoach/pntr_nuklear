@@ -160,18 +160,25 @@ extern "C" {
  * @internal
  * @private
  */
-float _pntr_nuklear_text_width(nk_handle font, float height, const char* text, int len) {
+static float _pntr_nuklear_text_width(nk_handle font, float height, const char* text, int len) {
+    NK_UNUSED(height);
     pntr_font* pntrFont = (pntr_font*)font.ptr;
     return pntr_measure_text_ex(pntrFont, text, len).x;
 }
 
-void* pntr_nuklear_alloc(nk_handle handle, void *old, nk_size size) {
+static void* pntr_nuklear_alloc(nk_handle handle, void *old, nk_size size) {
+    NK_UNUSED(handle);
+    NK_UNUSED(old);
     return pntr_load_memory((size_t)size);
 }
 
-void pntr_nuklear_free(nk_handle handle, void *old) {
+static void pntr_nuklear_free(nk_handle handle, void *old) {
+    NK_UNUSED(handle);
     if (old != NULL) {
         pntr_unload_memory(old);
+
+        // TODO: Fix nk_inv_sqrt() not being used?
+        nk_inv_sqrt(0.0f);
     }
 }
 
@@ -576,6 +583,7 @@ PNTR_NUKLEAR_API void pntr_nuklear_draw_stroke_curve(pntr_image* rawfb,
     const unsigned int num_segments, const unsigned short line_thickness,
     pntr_color col)
 {
+    NK_UNUSED(line_thickness); // TODO: Use line thickness.
     unsigned int i_step, segments;
     float t_step;
     struct nk_vec2i last = p1;
