@@ -777,11 +777,15 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                     break;
                 }
 
-                pntr_color tint = pntr_color_from_nk_color(i->col);
-                pntr_rectangle srcRect = {i->img.region[0], i->img.region[1], i->img.region[2], i->img.region[3]};
-                pntr_rectangle destination = {(int)i->x, (int)i->y, (int)i->w, (int)i->h};
+                //pntr_color tint = pntr_color_from_nk_color(i->col);
+                pntr_rectangle srcRect = {
+                    .x = i->img.region[0],
+                    .y = i->img.region[1],
+                    .width = i->img.region[2],
+                    .height = i->img.region[3]
+                };
 
-                pntr_draw_image_tint_rec(dst, image, srcRect, destination.x, destination.y, tint);
+                pntr_draw_image_scaled_rec(dst, image, srcRect, i->x, i->y, (float)i->w / (float)srcRect.width, (float)i->h / (float)srcRect.height, 0, 0, PNTR_FILTER_BILINEAR);
             } break;
 
             case NK_COMMAND_CUSTOM: {
