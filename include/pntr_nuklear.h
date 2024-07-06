@@ -182,6 +182,33 @@ static void pntr_nuklear_free(nk_handle handle, void *old) {
     }
 }
 
+#ifdef PNTR_APP_API
+/**
+ * Nuklear callback; Paste the current clipboard.
+ *
+ * @internal
+ */
+static void
+pntr_nuklear_clipboard_paste(nk_handle usr, struct nk_text_edit *edit)
+{
+    const char* text = pntr_app_clipboard((pntr_app*)usr.ptr);
+    if (text != NULL) {
+        nk_textedit_paste(edit, text, PNTR_STRLEN(text));
+    }
+}
+
+/**
+ * Nuklear callback; Copy the given text.
+ *
+ * @internal
+ */
+static void
+pntr_nuklear_clipboard_copy(nk_handle usr, const char *text, int len)
+{
+    pntr_app_set_clipboard((pntr_app*)usr.ptr, text, len);
+}
+#endif
+
 PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
     if (font == NULL) {
         return NULL;
@@ -190,6 +217,8 @@ PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
     // Build the memory.
     struct nk_context* ctx = (struct nk_context*)pntr_load_memory(sizeof(struct nk_context));
     struct nk_user_font* userFont = (struct nk_user_font*)pntr_load_memory(sizeof(struct nk_user_font));
+
+    // Allocator
     struct nk_allocator allocator;
     allocator.alloc = pntr_nuklear_alloc;
     allocator.free = pntr_nuklear_free;
@@ -247,8 +276,15 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
     }
 
     #ifndef PNTR_APP_API
-    return;
+        return;
     #else
+        // Set up the clipboard if needed.
+        if (ctx->clip.userdata.ptr == NULL) {
+            ctx->clip.userdata.ptr = app;
+            ctx->clip.copy = pntr_nuklear_clipboard_copy;
+            ctx->clip.paste = pntr_nuklear_clipboard_paste;
+        }
+
         // Delta Time
         ctx->delta_time_seconds = pntr_app_delta_time(app);
 
