@@ -18,6 +18,7 @@ int main() {
     // Nuklear GUI Code
     if (nk_begin(ctx, "Hello World", nk_rect(50, 50, 200, 150),
                     NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_CLOSABLE)) {
+        nk_layout_row_dynamic(ctx, 0, 1);
         if (nk_button_label(ctx, "Button")) {
             printf("Hello World!\n");
         }
