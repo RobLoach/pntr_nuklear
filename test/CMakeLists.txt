@@ -21,7 +21,7 @@ set_property(TARGET pntr_nuklear_test PROPERTY COMPILE_WARNING_AS_ERROR ON)
 if(MSVC)
     target_compile_options(pntr_nuklear_test PRIVATE /W4 /WX)
 else()
-    target_compile_options(pntr_nuklear_test PRIVATE -Wall -Wextra -Wpedantic -Werror)
+    target_compile_options(pntr_nuklear_test PRIVATE -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion)
 endif()
 
 # Set up the test

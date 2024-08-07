@@ -163,7 +163,7 @@ extern "C" {
 static float _pntr_nuklear_text_width(nk_handle font, float height, const char* text, int len) {
     NK_UNUSED(height);
     pntr_font* pntrFont = (pntr_font*)font.ptr;
-    return pntr_measure_text_ex(pntrFont, text, len).x;
+    return (float)pntr_measure_text_ex(pntrFont, text, len).x;
 }
 
 static void* pntr_nuklear_alloc(nk_handle handle, void *old, nk_size size) {
@@ -228,11 +228,11 @@ PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
     #define PNTR_LOAD_NUKLEAR_ALPHABET_LEN (172 - PNTR_LOAD_NUKLEAR_ALPHABET_START)
     char theAlphabet[PNTR_LOAD_NUKLEAR_ALPHABET_LEN];
     for (int i = 0; i <= PNTR_LOAD_NUKLEAR_ALPHABET_LEN; i++) {
-        theAlphabet[i] = i + PNTR_LOAD_NUKLEAR_ALPHABET_START;
+        theAlphabet[i] = (char)(i + PNTR_LOAD_NUKLEAR_ALPHABET_START);
     }
 
     pntr_vector size = pntr_measure_text_ex(font, theAlphabet, PNTR_LOAD_NUKLEAR_ALPHABET_LEN);
-    userFont->height = size.y;
+    userFont->height = (float)size.y;
     userFont->width = _pntr_nuklear_text_width;
     userFont->userdata.ptr = font;
 
@@ -743,9 +743,9 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 float startAngle = a->a[0] * 180.0f / PNTR_PI;
                 float endAngle = a->a[1] * 180.0f / PNTR_PI;
 
-                pntr_draw_arc(dst, (int)a->cx, (int)a->cy, a->r, startAngle, endAngle, a->r * 3, color);
-                pntr_draw_line(dst, a->cx, a->cy, a->cx + PNTR_COSF(a->a[0]) * a->r, a->cy + PNTR_SINF(a->a[0]) * a->r, color);
-                pntr_draw_line(dst, a->cx, a->cy, a->cx + PNTR_COSF(a->a[1]) * a->r, a->cy + PNTR_SINF(a->a[1]) * a->r, color);
+                pntr_draw_arc(dst, a->cx, a->cy, a->r, startAngle, endAngle, a->r * 3, color);
+                pntr_draw_line(dst, a->cx, a->cy, (int)a->cx + (int)(PNTR_COSF(a->a[0]) * (float)a->r), (int)a->cy + (int)(PNTR_SINF(a->a[0]) * (float)a->r), color);
+                pntr_draw_line(dst, a->cx, a->cy, (int)a->cx + (int)(PNTR_COSF(a->a[1]) * (float)a->r), (int)a->cy + (int)(PNTR_SINF(a->a[1]) * (float)a->r), color);
             } break;
 
             case NK_COMMAND_ARC_FILLED: {
