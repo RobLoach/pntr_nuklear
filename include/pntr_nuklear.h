@@ -610,37 +610,6 @@ PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const stru
     #undef PNTR_NUKLEAR_POLYGON_FILL_MAX_POINTS
 }
 
-/**
- * @internal
- */
-PNTR_NUKLEAR_API void pntr_nuklear_draw_stroke_curve(pntr_image* rawfb,
-    const struct nk_vec2i p1, const struct nk_vec2i p2,
-    const struct nk_vec2i p3, const struct nk_vec2i p4,
-    const unsigned int num_segments, const unsigned short line_thickness,
-    pntr_color col)
-{
-    NK_UNUSED(line_thickness); // TODO: Use line thickness.
-    unsigned int i_step, segments;
-    float t_step;
-    struct nk_vec2i last = p1;
-
-    segments = PNTR_MAX(num_segments, 1);
-    t_step = 1.0f/(float)segments;
-    for (i_step = 1; i_step <= segments; ++i_step) {
-        float t = t_step * (float)i_step;
-        float u = 1.0f - t;
-        float w1 = u*u*u;
-        float w2 = 3*u*u*t;
-        float w3 = 3*u*t*t;
-        float w4 = t * t *t;
-        float x = w1 * p1.x + w2 * p2.x + w3 * p3.x + w4 * p4.x;
-        float y = w1 * p1.y + w2 * p2.y + w3 * p3.y + w4 * p4.y;
-        // TODO: Add line_thickness to pntr_nuklear_draw_stroke_curve
-        pntr_draw_line(rawfb, last.x, last.y, (int)x, (int)y, col);
-        last.x = (short)x; last.y = (short)y;
-    }
-}
-
 PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx) {
     if (dst == NULL || ctx == NULL) {
         return;
@@ -671,8 +640,17 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
             case NK_COMMAND_CURVE: {
                 const struct nk_command_curve *q = (const struct nk_command_curve *)cmd;
-                pntr_nuklear_draw_stroke_curve(dst, q->begin, q->ctrl[0], q->ctrl[1],
-                    q->end, 22, q->line_thickness, pntr_color_from_nk_color(q->color));
+                #ifndef PNTR_NUKLEAR_CURVE_SEGMENTS
+                    #define PNTR_NUKLEAR_CURVE_SEGMENTS 22
+                #endif
+                // TODO: Add line_thickness to pntr_draw_line_curve()
+                pntr_draw_line_curve(dst,
+                    pntr_vector_from_nk_vec2i(q->begin),
+                    pntr_vector_from_nk_vec2i(q->ctrl[0]),
+                    pntr_vector_from_nk_vec2i(q->ctrl[1]),
+                    pntr_vector_from_nk_vec2i(q->end),
+                    PNTR_NUKLEAR_CURVE_SEGMENTS,
+                    pntr_color_from_nk_color(q->color));
             } break;
 
             case NK_COMMAND_RECT: {
