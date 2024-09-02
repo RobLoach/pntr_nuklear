@@ -1,18 +1,27 @@
+#include <time.h>
+
 static int
 overview(struct nk_context *ctx)
 {
     /* window flags */
     static nk_bool show_menu = nk_true;
-    static nk_flags window_flags = NK_WINDOW_TITLE|NK_WINDOW_BORDER|NK_WINDOW_SCALABLE|NK_WINDOW_MOVABLE|NK_WINDOW_MINIMIZABLE;
-    nk_flags actual_window_flags;
+    static nk_flags window_flags = NK_WINDOW_TITLE|NK_WINDOW_BORDER|NK_WINDOW_SCALABLE|NK_WINDOW_MOVABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_SCROLL_AUTO_HIDE;
+    nk_flags actual_window_flags = 0;
 
     /* widget flags */
-	static nk_bool disable_widgets = nk_false;
+    static nk_bool disable_widgets = nk_false;
 
     /* popups */
     static enum nk_style_header_align header_align = NK_HEADER_RIGHT;
     static nk_bool show_app_about = nk_false;
 
+#ifdef INCLUDE_STYLE
+    /* styles */
+    static const char* themes[] = {"Black", "White", "Red", "Blue", "Dark", "Dracula"};
+    static int current_theme = 0;
+#endif
+
+    /* window flags */
     ctx->style.window.header.align = header_align;
 
     actual_window_flags = window_flags;
@@ -121,6 +130,20 @@ overview(struct nk_context *ctx)
             } else show_app_about = nk_false;
         }
 
+#ifdef INCLUDE_STYLE
+        /* style selector */
+        nk_layout_row_dynamic(ctx, 0, 2);
+        {
+            int new_theme;
+            nk_label(ctx, "Style:", NK_TEXT_LEFT);
+            new_theme = nk_combo(ctx, themes, NK_LEN(themes), current_theme, 25, nk_vec2(200, 200));
+            if (new_theme != current_theme) {
+                current_theme = new_theme;
+                set_style(ctx, current_theme);
+            }
+        }
+#endif
+
         /* window flags */
         if (nk_tree_push(ctx, NK_TREE_TAB, "Window", NK_MINIMIZED)) {
             nk_layout_row_dynamic(ctx, 30, 2);
@@ -184,9 +207,13 @@ overview(struct nk_context *ctx)
                 nk_button_symbol(ctx, NK_SYMBOL_RECT_SOLID);
                 nk_button_symbol(ctx, NK_SYMBOL_RECT_OUTLINE);
                 nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_UP);
+                nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_UP_OUTLINE);
                 nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_DOWN);
+                nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_DOWN_OUTLINE);
                 nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_LEFT);
+                nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_LEFT_OUTLINE);
                 nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_RIGHT);
+                nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_RIGHT_OUTLINE);
 
                 nk_layout_row_static(ctx, 30, 100, 2);
                 nk_button_symbol_label(ctx, NK_SYMBOL_TRIANGLE_LEFT, "prev", NK_TEXT_RIGHT);
@@ -200,6 +227,8 @@ overview(struct nk_context *ctx)
                 /* Basic widgets */
                 static int int_slider = 5;
                 static float float_slider = 2.5f;
+                static int int_knob = 5;
+                static float float_knob = 2.5f;
                 static nk_size prog_value = 40;
                 static float property_float = 2;
                 static int property_int = 10;
@@ -212,6 +241,7 @@ overview(struct nk_context *ctx)
                 static int range_int_value = 2048;
                 static int range_int_max = 4096;
                 static const float ratio[] = {120, 150};
+                static int range_int_value_hidden = 2048;
 
                 nk_layout_row_dynamic(ctx, 0, 1);
                 nk_checkbox_label(ctx, "CheckLeft TextLeft", &checkbox_left_text_left);
@@ -238,6 +268,12 @@ overview(struct nk_context *ctx)
                 nk_labelf(ctx, NK_TEXT_LEFT, "Progressbar: %u" , (int)prog_value);
                 nk_progress(ctx, &prog_value, 100, NK_MODIFIABLE);
 
+                nk_layout_row(ctx, NK_STATIC, 40, 2, ratio);
+                nk_labelf(ctx, NK_TEXT_LEFT, "Knob int: %d", int_knob);
+                nk_knob_int(ctx, 0, &int_knob, 10, 1, NK_DOWN, 60.0f);
+                nk_labelf(ctx, NK_TEXT_LEFT, "Knob float: %.2f", float_knob);
+                nk_knob_float(ctx, 0, &float_knob, 5.0, 0.5f, NK_DOWN, 60.0f);
+
                 nk_layout_row(ctx, NK_STATIC, 25, 2, ratio);
                 nk_label(ctx, "Property float:", NK_TEXT_LEFT);
                 nk_property_float(ctx, "Float:", 0, &property_float, 64.0f, 0.1f, 0.2f);
@@ -256,6 +292,10 @@ overview(struct nk_context *ctx)
                 nk_property_int(ctx, "#min:", INT_MIN, &range_int_min, range_int_max, 1, 10);
                 nk_property_int(ctx, "#neg:", range_int_min, &range_int_value, range_int_max, 1, 10);
                 nk_property_int(ctx, "#max:", range_int_min, &range_int_max, INT_MAX, 1, 10);
+
+                nk_layout_row_dynamic(ctx, 0, 2);
+                nk_label(ctx, "Hidden Label:", NK_TEXT_LEFT);
+                nk_property_int(ctx, "##Hidden Label", range_int_min, &range_int_value_hidden, INT_MAX, 1, 10);
 
                 nk_tree_pop(ctx);
             }
@@ -452,96 +492,96 @@ overview(struct nk_context *ctx)
                     nk_combo_end(ctx);
                 }
 
-                // {
-                //     static int time_selected = 0;
-                //     static int date_selected = 0;
-                //     static struct tm sel_time;
-                //     static struct tm sel_date;
-                //     if (!time_selected || !date_selected) {
-                //         /* keep time and date updated if nothing is selected */
-                //         time_t cur_time = time(0);
-                //         struct tm *n = localtime(&cur_time);
-                //         if (!time_selected)
-                //             memcpy(&sel_time, n, sizeof(struct tm));
-                //         if (!date_selected)
-                //             memcpy(&sel_date, n, sizeof(struct tm));
-                //     }
+                {
+                    static int time_selected = 0;
+                    static int date_selected = 0;
+                    static struct tm sel_time;
+                    static struct tm sel_date;
+                    if (!time_selected || !date_selected) {
+                        /* keep time and date updated if nothing is selected */
+                        time_t cur_time = time(0);
+                        struct tm *n = localtime(&cur_time);
+                        if (!time_selected)
+                            memcpy(&sel_time, n, sizeof(struct tm));
+                        if (!date_selected)
+                            memcpy(&sel_date, n, sizeof(struct tm));
+                    }
 
-                //     /* time combobox */
-                //     sprintf(buffer, "%02d:%02d:%02d", sel_time.tm_hour, sel_time.tm_min, sel_time.tm_sec);
-                //     if (nk_combo_begin_label(ctx, buffer, nk_vec2(200,250))) {
-                //         time_selected = 1;
-                //         nk_layout_row_dynamic(ctx, 25, 1);
-                //         sel_time.tm_sec = nk_propertyi(ctx, "#S:", 0, sel_time.tm_sec, 60, 1, 1);
-                //         sel_time.tm_min = nk_propertyi(ctx, "#M:", 0, sel_time.tm_min, 60, 1, 1);
-                //         sel_time.tm_hour = nk_propertyi(ctx, "#H:", 0, sel_time.tm_hour, 23, 1, 1);
-                //         nk_combo_end(ctx);
-                //     }
+                    /* time combobox */
+                    sprintf(buffer, "%02d:%02d:%02d", sel_time.tm_hour, sel_time.tm_min, sel_time.tm_sec);
+                    if (nk_combo_begin_label(ctx, buffer, nk_vec2(200,250))) {
+                        time_selected = 1;
+                        nk_layout_row_dynamic(ctx, 25, 1);
+                        sel_time.tm_sec = nk_propertyi(ctx, "#S:", 0, sel_time.tm_sec, 60, 1, 1);
+                        sel_time.tm_min = nk_propertyi(ctx, "#M:", 0, sel_time.tm_min, 60, 1, 1);
+                        sel_time.tm_hour = nk_propertyi(ctx, "#H:", 0, sel_time.tm_hour, 23, 1, 1);
+                        nk_combo_end(ctx);
+                    }
 
-                //     /* date combobox */
-                //     sprintf(buffer, "%02d-%02d-%02d", sel_date.tm_mday, sel_date.tm_mon+1, sel_date.tm_year+1900);
-                //     if (nk_combo_begin_label(ctx, buffer, nk_vec2(350,400)))
-                //     {
-                //         int i = 0;
-                //         const char *month[] = {"January", "February", "March",
-                //             "April", "May", "June", "July", "August", "September",
-                //             "October", "November", "December"};
-                //         const char *week_days[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
-                //         const int month_days[] = {31,28,31,30,31,30,31,31,30,31,30,31};
-                //         int year = sel_date.tm_year+1900;
-                //         int leap_year = (!(year % 4) && ((year % 100))) || !(year % 400);
-                //         int days = (sel_date.tm_mon == 1) ?
-                //             month_days[sel_date.tm_mon] + leap_year:
-                //             month_days[sel_date.tm_mon];
+                    /* date combobox */
+                    sprintf(buffer, "%02d-%02d-%02d", sel_date.tm_mday, sel_date.tm_mon+1, sel_date.tm_year+1900);
+                    if (nk_combo_begin_label(ctx, buffer, nk_vec2(350,400)))
+                    {
+                        int i = 0;
+                        const char *month[] = {"January", "February", "March",
+                            "April", "May", "June", "July", "August", "September",
+                            "October", "November", "December"};
+                        const char *week_days[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
+                        const int month_days[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+                        int year = sel_date.tm_year+1900;
+                        int leap_year = (!(year % 4) && ((year % 100))) || !(year % 400);
+                        int days = (sel_date.tm_mon == 1) ?
+                            month_days[sel_date.tm_mon] + leap_year:
+                            month_days[sel_date.tm_mon];
 
-                //         /* header with month and year */
-                //         date_selected = 1;
-                //         nk_layout_row_begin(ctx, NK_DYNAMIC, 20, 3);
-                //         nk_layout_row_push(ctx, 0.05f);
-                //         if (nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_LEFT)) {
-                //             if (sel_date.tm_mon == 0) {
-                //                 sel_date.tm_mon = 11;
-                //                 sel_date.tm_year = NK_MAX(0, sel_date.tm_year-1);
-                //             } else sel_date.tm_mon--;
-                //         }
-                //         nk_layout_row_push(ctx, 0.9f);
-                //         sprintf(buffer, "%s %d", month[sel_date.tm_mon], year);
-                //         nk_label(ctx, buffer, NK_TEXT_CENTERED);
-                //         nk_layout_row_push(ctx, 0.05f);
-                //         if (nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_RIGHT)) {
-                //             if (sel_date.tm_mon == 11) {
-                //                 sel_date.tm_mon = 0;
-                //                 sel_date.tm_year++;
-                //             } else sel_date.tm_mon++;
-                //         }
-                //         nk_layout_row_end(ctx);
+                        /* header with month and year */
+                        date_selected = 1;
+                        nk_layout_row_begin(ctx, NK_DYNAMIC, 20, 3);
+                        nk_layout_row_push(ctx, 0.05f);
+                        if (nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_LEFT)) {
+                            if (sel_date.tm_mon == 0) {
+                                sel_date.tm_mon = 11;
+                                sel_date.tm_year = NK_MAX(0, sel_date.tm_year-1);
+                            } else sel_date.tm_mon--;
+                        }
+                        nk_layout_row_push(ctx, 0.9f);
+                        sprintf(buffer, "%s %d", month[sel_date.tm_mon], year);
+                        nk_label(ctx, buffer, NK_TEXT_CENTERED);
+                        nk_layout_row_push(ctx, 0.05f);
+                        if (nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_RIGHT)) {
+                            if (sel_date.tm_mon == 11) {
+                                sel_date.tm_mon = 0;
+                                sel_date.tm_year++;
+                            } else sel_date.tm_mon++;
+                        }
+                        nk_layout_row_end(ctx);
 
-                //         /* good old week day formula (double because precision) */
-                //         {int year_n = (sel_date.tm_mon < 2) ? year-1: year;
-                //         int y = year_n % 100;
-                //         int c = year_n / 100;
-                //         int y4 = (int)((float)y / 4);
-                //         int c4 = (int)((float)c / 4);
-                //         int m = (int)(2.6 * (double)(((sel_date.tm_mon + 10) % 12) + 1) - 0.2);
-                //         int week_day = (((1 + m + y + y4 + c4 - 2 * c) % 7) + 7) % 7;
+                        /* good old week day formula (double because precision) */
+                        {int year_n = (sel_date.tm_mon < 2) ? year-1: year;
+                        int y = year_n % 100;
+                        int c = year_n / 100;
+                        int y4 = (int)((float)y / 4);
+                        int c4 = (int)((float)c / 4);
+                        int m = (int)(2.6 * (double)(((sel_date.tm_mon + 10) % 12) + 1) - 0.2);
+                        int week_day = (((1 + m + y + y4 + c4 - 2 * c) % 7) + 7) % 7;
 
-                //         /* weekdays  */
-                //         nk_layout_row_dynamic(ctx, 35, 7);
-                //         for (i = 0; i < (int)NK_LEN(week_days); ++i)
-                //             nk_label(ctx, week_days[i], NK_TEXT_CENTERED);
+                        /* weekdays  */
+                        nk_layout_row_dynamic(ctx, 35, 7);
+                        for (i = 0; i < (int)NK_LEN(week_days); ++i)
+                            nk_label(ctx, week_days[i], NK_TEXT_CENTERED);
 
-                //         /* days  */
-                //         if (week_day > 0) nk_spacing(ctx, week_day);
-                //         for (i = 1; i <= days; ++i) {
-                //             sprintf(buffer, "%d", i);
-                //             if (nk_button_label(ctx, buffer)) {
-                //                 sel_date.tm_mday = i;
-                //                 nk_combo_close(ctx);
-                //             }
-                //         }}
-                //         nk_combo_end(ctx);
-                //     }
-                // }
+                        /* days  */
+                        if (week_day > 0) nk_spacing(ctx, week_day);
+                        for (i = 1; i <= days; ++i) {
+                            sprintf(buffer, "%d", i);
+                            if (nk_button_label(ctx, buffer)) {
+                                sel_date.tm_mday = i;
+                                nk_combo_close(ctx);
+                            }
+                        }}
+                        nk_combo_end(ctx);
+                    }
+                }
 
                 nk_tree_pop(ctx);
             }

@@ -62,6 +62,8 @@ bool Init(pntr_app* application) {
             set_style(app->ctx, THEME_BLUE);
         #elif defined(STYLE_DARK)
             set_style(app->ctx, THEME_DARK);
+        #elif defined(STYLE_DRACULA)
+            set_style(app->ctx, THEME_DRACULA);
         #endif
     #endif
 
