@@ -2,7 +2,7 @@
 *
 *   pntr_nuklear - Nuklear immediate-mode graphical user interface for pntr.
 *
-*   Copyright 2023 Rob Loach (@RobLoach)
+*   Copyright 2026 Rob Loach (@RobLoach)
 *
 *   DEPENDENCIES:
 *       pntr https://github.com/robloach/pntr
