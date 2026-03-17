@@ -535,6 +535,8 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
         nk_input_button(ctx, NK_BUTTON_LEFT, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_LEFT));
         nk_input_button(ctx, NK_BUTTON_MIDDLE, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_MIDDLE));
         nk_input_button(ctx, NK_BUTTON_RIGHT, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_RIGHT));
+        nk_input_button(ctx, NK_BUTTON_X1, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_X1));
+        nk_input_button(ctx, NK_BUTTON_X2, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_X2));
     #endif
 }
 
