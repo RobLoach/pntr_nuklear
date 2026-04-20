@@ -227,7 +227,7 @@ PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
     #define PNTR_LOAD_NUKLEAR_ALPHABET_START (33)
     #define PNTR_LOAD_NUKLEAR_ALPHABET_LEN (172 - PNTR_LOAD_NUKLEAR_ALPHABET_START)
     char theAlphabet[PNTR_LOAD_NUKLEAR_ALPHABET_LEN];
-    for (int i = 0; i <= PNTR_LOAD_NUKLEAR_ALPHABET_LEN; i++) {
+    for (int i = 0; i < PNTR_LOAD_NUKLEAR_ALPHABET_LEN; i++) {
         theAlphabet[i] = (char)(i + PNTR_LOAD_NUKLEAR_ALPHABET_START);
     }
 
