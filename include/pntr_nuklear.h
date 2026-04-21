@@ -105,10 +105,10 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
  */
 PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx);
 PNTR_NUKLEAR_API struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle rectangle);
-PNTR_NUKLEAR_API pntr_color pntr_color_from_nk_color(struct nk_color color);
+PNTR_NUKLEAR_API pntr_color pntr_nk_color_to_color(struct nk_color color);
 PNTR_NUKLEAR_API struct nk_color pntr_color_to_nk_color(pntr_color color);
-PNTR_NUKLEAR_API pntr_vector pntr_vector_from_nk_vec2i(struct nk_vec2i vector);
-PNTR_NUKLEAR_API pntr_color pntr_color_from_nk_colorf(struct nk_colorf color);
+PNTR_NUKLEAR_API pntr_vector pntr_nk_vec2i_to_vector(struct nk_vec2i vector);
+PNTR_NUKLEAR_API pntr_color pntr_nk_colorf_to_color(struct nk_colorf color);
 
 /**
  * Creates a Nuklear reference to the given pntr_image for use in nk_image().
@@ -122,17 +122,6 @@ PNTR_NUKLEAR_API pntr_color pntr_color_from_nk_colorf(struct nk_colorf color);
  */
 PNTR_NUKLEAR_API struct nk_image pntr_image_nk(pntr_image* image);
 PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const struct nk_vec2i *pnts, int count, pntr_color col);
-
-/**
- * Loads Nuklear's built-in Proggy Clean font as a pntr_font.
- *
- * @param fontSize The desired font size in pixels.
- * @return A new pntr_font, or NULL on failure. Unload with pntr_unload_font().
- *
- * @see pntr_load_nuklear()
- * @see pntr_unload_font()
- */
-PNTR_NUKLEAR_API pntr_font* pntr_load_nuklear_font(int fontSize);
 
 #ifdef __cplusplus
 }
@@ -601,7 +590,7 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                     l->begin.x, l->begin.y,
                     l->end.x, l->end.y,
                     (int)l->line_thickness,
-                    pntr_color_from_nk_color(l->color)
+                    pntr_nk_color_to_color(l->color)
                 );
             } break;
 
@@ -611,19 +600,19 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                     #define PNTR_NUKLEAR_CURVE_SEGMENTS 22
                 #endif
                 pntr_draw_line_curve_thick(dst,
-                    pntr_vector_from_nk_vec2i(q->begin),
-                    pntr_vector_from_nk_vec2i(q->ctrl[0]),
-                    pntr_vector_from_nk_vec2i(q->ctrl[1]),
-                    pntr_vector_from_nk_vec2i(q->end),
+                    pntr_nk_vec2i_to_vector(q->begin),
+                    pntr_nk_vec2i_to_vector(q->ctrl[0]),
+                    pntr_nk_vec2i_to_vector(q->ctrl[1]),
+                    pntr_nk_vec2i_to_vector(q->end),
                     PNTR_NUKLEAR_CURVE_SEGMENTS,
                     (int)q->line_thickness,
-                    pntr_color_from_nk_color(q->color)
+                    pntr_nk_color_to_color(q->color)
                 );
             } break;
 
             case NK_COMMAND_RECT: {
                 const struct nk_command_rect *r = (const struct nk_command_rect *)cmd;
-                pntr_color color = pntr_color_from_nk_color(r->color);
+                pntr_color color = pntr_nk_color_to_color(r->color);
                 int rounding = (int)r->rounding;
                 pntr_draw_rectangle_thick_rounded(dst,
                     (int)r->x, (int)r->y,
@@ -636,23 +625,23 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
             case NK_COMMAND_RECT_FILLED: {
                 const struct nk_command_rect_filled *r = (const struct nk_command_rect_filled *)cmd;
-                pntr_draw_rectangle_rounded_fill(dst, (int)r->x, (int)r->y, (int)r->w, (int)r->h, (int)r->rounding, pntr_color_from_nk_color(r->color));
+                pntr_draw_rectangle_rounded_fill(dst, (int)r->x, (int)r->y, (int)r->w, (int)r->h, (int)r->rounding, pntr_nk_color_to_color(r->color));
             } break;
 
             case NK_COMMAND_RECT_MULTI_COLOR: {
                 const struct nk_command_rect_multi_color* rectangle = (const struct nk_command_rect_multi_color *)cmd;
                 pntr_draw_rectangle_gradient_rec(dst,
                     PNTR_CLITERAL(pntr_rectangle) {(int)rectangle->x, (int)rectangle->y, (int)rectangle->w, (int)rectangle->h},
-                    pntr_color_from_nk_color(rectangle->left),
-                    pntr_color_from_nk_color(rectangle->top),
-                    pntr_color_from_nk_color(rectangle->bottom),
-                    pntr_color_from_nk_color(rectangle->right)
+                    pntr_nk_color_to_color(rectangle->left),
+                    pntr_nk_color_to_color(rectangle->top),
+                    pntr_nk_color_to_color(rectangle->bottom),
+                    pntr_nk_color_to_color(rectangle->right)
                 );
             } break;
 
             case NK_COMMAND_CIRCLE: {
                 const struct nk_command_circle *c = (const struct nk_command_circle *)cmd;
-                pntr_color color = pntr_color_from_nk_color(c->color);
+                pntr_color color = pntr_nk_color_to_color(c->color);
                 if (c->w == c->h) {
                     pntr_draw_circle_thick(dst, c->x + c->w / 2, c->y + c->h / 2, c->w / 2 + 1, (int)c->line_thickness, color);
                 }
@@ -663,7 +652,7 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
             case NK_COMMAND_CIRCLE_FILLED: {
                 const struct nk_command_circle_filled *c = (const struct nk_command_circle_filled *)cmd;
-                pntr_color color = pntr_color_from_nk_color(c->color);
+                pntr_color color = pntr_nk_color_to_color(c->color);
                 if (c->w == c->h) {
                     pntr_draw_circle_fill(dst, c->x + c->w / 2, c->y + c->h / 2, c->w / 2 + 1, color);
                 }
@@ -676,12 +665,12 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 const struct nk_command_arc *a = (const struct nk_command_arc*)cmd;
                 float startAngle = a->a[0] * 180.0f / PNTR_PI;
                 float endAngle = a->a[1] * 180.0f / PNTR_PI;
-                pntr_draw_arc_thick(dst, a->cx, a->cy, a->r, startAngle, endAngle, a->r * 3, (int)a->line_thickness, pntr_color_from_nk_color(a->color));
+                pntr_draw_arc_thick(dst, a->cx, a->cy, a->r, startAngle, endAngle, a->r * 3, (int)a->line_thickness, pntr_nk_color_to_color(a->color));
             } break;
 
             case NK_COMMAND_ARC_FILLED: {
                 const struct nk_command_arc_filled *a = (const struct nk_command_arc_filled*)cmd;
-                pntr_color color = pntr_color_from_nk_color(a->color);
+                pntr_color color = pntr_nk_color_to_color(a->color);
 
                 float startAngle = a->a[0] * 180.0f / PNTR_PI;
                 float endAngle = a->a[1] * 180.0f / PNTR_PI;
@@ -691,19 +680,19 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
             case NK_COMMAND_TRIANGLE: {
                 const struct nk_command_triangle *t = (const struct nk_command_triangle*)cmd;
-                pntr_color color = pntr_color_from_nk_color(t->color);
+                pntr_color color = pntr_nk_color_to_color(t->color);
                 pntr_draw_triangle_thick(dst, t->b.x, t->b.y, t->a.x, t->a.y, t->c.x, t->c.y, (int)t->line_thickness, color);
             } break;
 
             case NK_COMMAND_TRIANGLE_FILLED: {
                 const struct nk_command_triangle_filled *t = (const struct nk_command_triangle_filled*)cmd;
-                pntr_color color = pntr_color_from_nk_color(t->color);
+                pntr_color color = pntr_nk_color_to_color(t->color);
                 pntr_draw_triangle_fill(dst, t->b.x, t->b.y, t->a.x, t->a.y, t->c.x, t->c.y, color);
             } break;
 
             case NK_COMMAND_POLYGON: {
                 const struct nk_command_polygon *p = (const struct nk_command_polygon*)cmd;
-                pntr_color color = pntr_color_from_nk_color(p->color);
+                pntr_color color = pntr_nk_color_to_color(p->color);
                 int count = (p->point_count < PNTR_NUKLEAR_MAX_POLYGON_POINTS) ? p->point_count : PNTR_NUKLEAR_MAX_POLYGON_POINTS;
                 pntr_vector points[PNTR_NUKLEAR_MAX_POLYGON_POINTS];
                 for (int i = 0; i < count; i++) {
@@ -715,7 +704,7 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
             case NK_COMMAND_POLYGON_FILLED: {
                 const struct nk_command_polygon_filled *p = (const struct nk_command_polygon_filled*)cmd;
-                pntr_color color = pntr_color_from_nk_color(p->color);
+                pntr_color color = pntr_nk_color_to_color(p->color);
                 int count = (p->point_count < PNTR_NUKLEAR_MAX_POLYGON_POINTS) ? p->point_count : PNTR_NUKLEAR_MAX_POLYGON_POINTS;
                 pntr_vector points[PNTR_NUKLEAR_MAX_POLYGON_POINTS];
                 for (int i = 0; i < count; i++) {
@@ -727,7 +716,7 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
             case NK_COMMAND_POLYLINE: {
                 const struct nk_command_polyline *p = (const struct nk_command_polyline *)cmd;
-                pntr_color color = pntr_color_from_nk_color(p->color);
+                pntr_color color = pntr_nk_color_to_color(p->color);
                 int count = (p->point_count < PNTR_NUKLEAR_MAX_POLYGON_POINTS) ? p->point_count : PNTR_NUKLEAR_MAX_POLYGON_POINTS;
                 pntr_vector points[PNTR_NUKLEAR_MAX_POLYGON_POINTS];
                 for (int i = 0; i < count; i++) {
@@ -740,10 +729,10 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             case NK_COMMAND_TEXT: {
                 const struct nk_command_text *text = (const struct nk_command_text*)cmd;
                 if (text->background.a > 0) {
-                    pntr_draw_rectangle_fill(dst, text->x, text->y, text->w, text->h, pntr_color_from_nk_color(text->background));
+                    pntr_draw_rectangle_fill(dst, text->x, text->y, text->w, text->h, pntr_nk_color_to_color(text->background));
                 }
                 pntr_font* font = (pntr_font*)text->font->userdata.ptr;
-                pntr_draw_text(dst, font, (const char*)text->string, text->x, text->y, pntr_color_from_nk_color(text->foreground));
+                pntr_draw_text(dst, font, (const char*)text->string, text->x, text->y, pntr_nk_color_to_color(text->foreground));
             } break;
 
             case NK_COMMAND_IMAGE: {
@@ -757,30 +746,15 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                     break;
                 }
 
-                pntr_color tint = pntr_color_from_nk_color(i->col);
+                // TODO: Add tint to pntr_draw_image_scaled_rec()
+                //pntr_color tint = pntr_nk_color_to_color(i->col);
                 pntr_rectangle srcRect = {
                     .x = i->img.region[0],
                     .y = i->img.region[1],
                     .width = i->img.region[2],
                     .height = i->img.region[3]
                 };
-                float scaleX = (float)i->w / (float)srcRect.width;
-                float scaleY = (float)i->h / (float)srcRect.height;
-                if (tint.r == 255 && tint.g == 255 && tint.b == 255 && tint.a == 255) {
-                    pntr_draw_image_scaled_rec(dst, image, srcRect, i->x, i->y, scaleX, scaleY, 0, 0, PNTR_FILTER_BILINEAR);
-                } else if (scaleX == 1.0f && scaleY == 1.0f) {
-                    pntr_draw_image_tint_rec(dst, image, srcRect, i->x, i->y, tint);
-                } else {
-                    pntr_image* sub = pntr_image_from_image(image, srcRect.x, srcRect.y, srcRect.width, srcRect.height);
-                    if (sub != NULL) {
-                        pntr_image* scaled = pntr_image_resize(sub, i->w, i->h, PNTR_FILTER_BILINEAR);
-                        pntr_unload_image(sub);
-                        if (scaled != NULL) {
-                            pntr_draw_image_tint(dst, scaled, i->x, i->y, tint);
-                            pntr_unload_image(scaled);
-                        }
-                    }
-                }
+                pntr_draw_image_scaled_rec(dst, image, srcRect, i->x, i->y, (float)i->w / (float)srcRect.width, (float)i->h / (float)srcRect.height, 0, 0, PNTR_FILTER_BILINEAR);
             } break;
 
             case NK_COMMAND_CUSTOM: {
@@ -809,7 +783,7 @@ PNTR_NUKLEAR_API inline struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle 
     );
 }
 
-PNTR_NUKLEAR_API inline pntr_color pntr_color_from_nk_color(struct nk_color color) {
+PNTR_NUKLEAR_API inline pntr_color pntr_nk_color_to_color(struct nk_color color) {
     return pntr_new_color(color.r, color.g, color.b, color.a);
 }
 
@@ -822,15 +796,15 @@ PNTR_NUKLEAR_API struct nk_color pntr_color_to_nk_color(pntr_color color) {
     );
 }
 
-PNTR_NUKLEAR_API inline pntr_color pntr_color_from_nk_colorf(struct nk_colorf color) {
-    return pntr_color_from_nk_color(nk_rgba_f(color.r, color.g, color.b, color.a));
+PNTR_NUKLEAR_API inline pntr_color pntr_nk_colorf_to_color(struct nk_colorf color) {
+    return pntr_nk_color_to_color(nk_rgba_f(color.r, color.g, color.b, color.a));
 }
 
 PNTR_NUKLEAR_API struct nk_colorf pntr_color_to_nk_colorf(pntr_color color) {
     return nk_color_cf(pntr_color_to_nk_color(color));
 }
 
-PNTR_NUKLEAR_API inline pntr_vector pntr_vector_from_nk_vec2i(struct nk_vec2i vector) {
+PNTR_NUKLEAR_API inline pntr_vector pntr_nk_vec2i_to_vector(struct nk_vec2i vector) {
     return PNTR_CLITERAL(pntr_vector) {
         vector.x,
         vector.y
@@ -854,30 +828,6 @@ PNTR_NUKLEAR_API struct nk_image pntr_image_nk(pntr_image* image) {
     }
 
     return out;
-}
-
-PNTR_NUKLEAR_API pntr_font* pntr_load_nuklear_font(int fontSize) {
-    // Base85-decode the compressed TTF data bundled in nuklear.h
-    int compressedSize = ((int)PNTR_STRLEN(nk_proggy_clean_ttf_compressed_data_base85) * 4) / 5;
-    unsigned char* compressed = (unsigned char*)pntr_load_memory((size_t)compressedSize);
-    if (compressed == NULL) {
-        return NULL;
-    }
-    nk_decode_85(compressed, (const unsigned char*)nk_proggy_clean_ttf_compressed_data_base85);
-
-    // Decompress into the raw TTF bytes
-    unsigned int decompressedSize = nk_decompress_length(compressed);
-    unsigned char* decompressed = (unsigned char*)pntr_load_memory((size_t)decompressedSize);
-    if (decompressed == NULL) {
-        pntr_unload_memory(compressed);
-        return NULL;
-    }
-    nk_decompress(decompressed, compressed, (unsigned int)compressedSize);
-    pntr_unload_memory(compressed);
-
-    pntr_font* font = pntr_load_font_ttf_from_memory(decompressed, decompressedSize, fontSize);
-    pntr_unload_memory(decompressed);
-    return font;
 }
 
 #ifdef __cplusplus

@@ -70,7 +70,7 @@ bool Update(pntr_app* application, pntr_image* screen) {
     nk_end(ctx);
 
     // Port the Nuklear state to pntr values.
-    app->bg = pntr_color_from_nk_colorf(bg);
+    app->bg = pntr_nk_colorf_to_color(bg);
 
     pntr_clear_background(screen, app->bg);
     pntr_draw_nuklear(screen, app->ctx);
