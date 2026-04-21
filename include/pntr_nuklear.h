@@ -123,6 +123,31 @@ PNTR_NUKLEAR_API pntr_color pntr_color_from_nk_colorf(struct nk_colorf color);
 PNTR_NUKLEAR_API struct nk_image pntr_image_nk(pntr_image* image);
 PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const struct nk_vec2i *pnts, int count, pntr_color col);
 
+/**
+ * Loads Nuklear's built-in Proggy Clean font as a pntr_font.
+ *
+ * @param fontSize The desired font size in pixels.
+ * @return A new pntr_font, or NULL on failure. Unload with pntr_unload_font().
+ *
+ * @see pntr_load_nuklear()
+ * @see pntr_unload_font()
+ */
+PNTR_NUKLEAR_API pntr_font* pntr_load_nuklear_font(int fontSize);
+
+/**
+ * Draws the nuklear context scaled onto the destination image.
+ *
+ * The nuklear context should have been configured for the unscaled resolution
+ * (dst->width / scale by dst->height / scale).
+ *
+ * @param dst The destination image to render to.
+ * @param ctx The nuklear context to render.
+ * @param scale The scale factor (e.g. 2.0f doubles the UI size).
+ *
+ * @see pntr_draw_nuklear()
+ */
+PNTR_NUKLEAR_API void pntr_draw_nuklear_scaled(pntr_image* dst, struct nk_context* ctx, float scale);
+
 #ifdef __cplusplus
 }
 #endif
@@ -176,9 +201,7 @@ static void pntr_nuklear_free(nk_handle handle, void *old) {
     NK_UNUSED(handle);
     if (old != NULL) {
         pntr_unload_memory(old);
-
-        // TODO: Fix nk_inv_sqrt() not being used?
-        nk_inv_sqrt(0.0f);
+        (void)nk_inv_sqrt;
     }
 }
 
@@ -845,6 +868,49 @@ PNTR_NUKLEAR_API struct nk_image pntr_image_nk(pntr_image* image) {
     }
 
     return out;
+}
+
+PNTR_NUKLEAR_API pntr_font* pntr_load_nuklear_font(int fontSize) {
+    // Base85-decode the compressed TTF data bundled in nuklear.h
+    int compressedSize = ((int)PNTR_STRLEN(nk_proggy_clean_ttf_compressed_data_base85) * 4) / 5;
+    unsigned char* compressed = (unsigned char*)pntr_load_memory((size_t)compressedSize);
+    if (compressed == NULL) {
+        return NULL;
+    }
+    nk_decode_85(compressed, (const unsigned char*)nk_proggy_clean_ttf_compressed_data_base85);
+
+    // Decompress into the raw TTF bytes
+    unsigned int decompressedSize = nk_decompress_length(compressed);
+    unsigned char* decompressed = (unsigned char*)pntr_load_memory((size_t)decompressedSize);
+    if (decompressed == NULL) {
+        pntr_unload_memory(compressed);
+        return NULL;
+    }
+    nk_decompress(decompressed, compressed, (unsigned int)compressedSize);
+    pntr_unload_memory(compressed);
+
+    pntr_font* font = pntr_load_font_ttf_from_memory(decompressed, decompressedSize, fontSize);
+    pntr_unload_memory(decompressed);
+    return font;
+}
+
+PNTR_NUKLEAR_API void pntr_draw_nuklear_scaled(pntr_image* dst, struct nk_context* ctx, float scale) {
+    if (dst == NULL || ctx == NULL || scale <= 0.0f) {
+        return;
+    }
+    if (scale == 1.0f) {
+        pntr_draw_nuklear(dst, ctx);
+        return;
+    }
+    int w = (int)((float)dst->width / scale);
+    int h = (int)((float)dst->height / scale);
+    pntr_image* buffer = pntr_gen_image_color(w, h, PNTR_BLANK);
+    if (buffer == NULL) {
+        return;
+    }
+    pntr_draw_nuklear(buffer, ctx);
+    pntr_draw_image_scaled(dst, buffer, 0, 0, scale, scale, 0, 0, PNTR_FILTER_NEARESTNEIGHBOR);
+    pntr_unload_image(buffer);
 }
 
 #ifdef __cplusplus
