@@ -540,6 +540,10 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
     #endif
 }
 
+#ifndef PNTR_NUKLEAR_MAX_POLYGON_POINTS
+#define PNTR_NUKLEAR_MAX_POLYGON_POINTS 64
+#endif
+
 /**
  * Draw a filled polygon using Nuklear values.
  *
@@ -549,67 +553,15 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
  * @internal
  */
 PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const struct nk_vec2i *pnts, int count, pntr_color col) {
-    int i = 0;
-    #ifndef PNTR_NUKLEAR_POLYGON_FILL_MAX_POINTS
-    #define PNTR_NUKLEAR_POLYGON_FILL_MAX_POINTS 64
-    #endif
-    int left = 10000, top = 10000, bottom = 0, right = 0;
-    int nodes, nodeX[PNTR_NUKLEAR_POLYGON_FILL_MAX_POINTS], pixelX, pixelY, j, swap ;
-
     if (count == 0) return;
-    if (count > PNTR_NUKLEAR_POLYGON_FILL_MAX_POINTS)
-        count = PNTR_NUKLEAR_POLYGON_FILL_MAX_POINTS;
-
-    /* Get polygon dimensions */
-    for (i = 0; i < count; i++) {
-        if (left > pnts[i].x)
-            left = pnts[i].x;
-        if (right < pnts[i].x)
-            right = pnts[i].x;
-        if (top > pnts[i].y)
-            top = pnts[i].y;
-        if (bottom < pnts[i].y)
-            bottom = pnts[i].y;
-    } bottom++; right++;
-
-    /* Polygon scanline algorithm released under public-domain by Darel Rex Finley, 2007 */
-    /*  Loop through the rows of the image. */
-    for (pixelY = top; pixelY < bottom; pixelY ++) {
-        nodes = 0; /*  Build a list of nodes. */
-        j = count - 1;
-        for (i = 0; i < count; i++) {
-            if (((pnts[i].y < pixelY) && (pnts[j].y >= pixelY)) ||
-                ((pnts[j].y < pixelY) && (pnts[i].y >= pixelY))) {
-                nodeX[nodes++]= (int)((float)pnts[i].x
-                     + ((float)pixelY - (float)pnts[i].y) / ((float)pnts[j].y - (float)pnts[i].y)
-                     * ((float)pnts[j].x - (float)pnts[i].x));
-            } j = i;
-        }
-
-        /*  Sort the nodes, via a simple “Bubble” sort. */
-        i = 0;
-        while (i < nodes - 1) {
-            if (nodeX[i] > nodeX[i+1]) {
-                swap = nodeX[i];
-                nodeX[i] = nodeX[i+1];
-                nodeX[i+1] = swap;
-                if (i) i--;
-            } else i++;
-        }
-        /*  Fill the pixels between node pairs. */
-        for (i = 0; i < nodes; i += 2) {
-            if (nodeX[i+0] >= right) break;
-            if (nodeX[i+1] > left) {
-                if (nodeX[i+0] < left) nodeX[i+0] = left ;
-                if (nodeX[i+1] > right) nodeX[i+1] = right;
-                for (pixelX = nodeX[i]; pixelX < nodeX[i + 1]; pixelX++)
-                    //nk_rawfb_ctx_setpixel(rawfb, pixelX, pixelY, col);
-                    pntr_draw_point(dst, pixelX, pixelY, col);
-
-            }
-        }
+    if (count > PNTR_NUKLEAR_MAX_POLYGON_POINTS)
+        count = PNTR_NUKLEAR_MAX_POLYGON_POINTS;
+    pntr_vector points[PNTR_NUKLEAR_MAX_POLYGON_POINTS];
+    for (int i = 0; i < count; i++) {
+        points[i].x = pnts[i].x;
+        points[i].y = pnts[i].y;
     }
-    #undef PNTR_NUKLEAR_POLYGON_FILL_MAX_POINTS
+    pntr_draw_polygon_fill(dst, points, count, col);
 }
 
 PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx) {
@@ -713,15 +665,9 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
             case NK_COMMAND_ARC: {
                 const struct nk_command_arc *a = (const struct nk_command_arc*)cmd;
-                pntr_color color = pntr_color_from_nk_color(a->color);
-
                 float startAngle = a->a[0] * 180.0f / PNTR_PI;
                 float endAngle = a->a[1] * 180.0f / PNTR_PI;
-                int thickness = (int)a->line_thickness;
-
-                pntr_draw_arc_thick(dst, a->cx, a->cy, a->r, startAngle, endAngle, a->r * 3, thickness, color);
-                pntr_draw_line_thick(dst, a->cx, a->cy, (int)a->cx + (int)(PNTR_COSF(a->a[0]) * (float)a->r), (int)a->cy + (int)(PNTR_SINF(a->a[0]) * (float)a->r), thickness, color);
-                pntr_draw_line_thick(dst, a->cx, a->cy, (int)a->cx + (int)(PNTR_COSF(a->a[1]) * (float)a->r), (int)a->cy + (int)(PNTR_SINF(a->a[1]) * (float)a->r), thickness, color);
+                pntr_draw_arc_thick(dst, a->cx, a->cy, a->r, startAngle, endAngle, a->r * 3, (int)a->line_thickness, pntr_color_from_nk_color(a->color));
             } break;
 
             case NK_COMMAND_ARC_FILLED: {
@@ -749,9 +695,6 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             case NK_COMMAND_POLYGON: {
                 const struct nk_command_polygon *p = (const struct nk_command_polygon*)cmd;
                 pntr_color color = pntr_color_from_nk_color(p->color);
-                #ifndef PNTR_NUKLEAR_MAX_POLYGON_POINTS
-                #define PNTR_NUKLEAR_MAX_POLYGON_POINTS 64
-                #endif
                 int count = (p->point_count < PNTR_NUKLEAR_MAX_POLYGON_POINTS) ? p->point_count : PNTR_NUKLEAR_MAX_POLYGON_POINTS;
                 pntr_vector points[PNTR_NUKLEAR_MAX_POLYGON_POINTS];
                 for (int i = 0; i < count; i++) {
@@ -764,9 +707,6 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             case NK_COMMAND_POLYGON_FILLED: {
                 const struct nk_command_polygon_filled *p = (const struct nk_command_polygon_filled*)cmd;
                 pntr_color color = pntr_color_from_nk_color(p->color);
-                #ifndef PNTR_NUKLEAR_MAX_POLYGON_POINTS
-                #define PNTR_NUKLEAR_MAX_POLYGON_POINTS 64
-                #endif
                 int count = (p->point_count < PNTR_NUKLEAR_MAX_POLYGON_POINTS) ? p->point_count : PNTR_NUKLEAR_MAX_POLYGON_POINTS;
                 pntr_vector points[PNTR_NUKLEAR_MAX_POLYGON_POINTS];
                 for (int i = 0; i < count; i++) {
@@ -779,9 +719,6 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             case NK_COMMAND_POLYLINE: {
                 const struct nk_command_polyline *p = (const struct nk_command_polyline *)cmd;
                 pntr_color color = pntr_color_from_nk_color(p->color);
-                #ifndef PNTR_NUKLEAR_MAX_POLYGON_POINTS
-                #define PNTR_NUKLEAR_MAX_POLYGON_POINTS 64
-                #endif
                 int count = (p->point_count < PNTR_NUKLEAR_MAX_POLYGON_POINTS) ? p->point_count : PNTR_NUKLEAR_MAX_POLYGON_POINTS;
                 pntr_vector points[PNTR_NUKLEAR_MAX_POLYGON_POINTS];
                 for (int i = 0; i < count; i++) {
@@ -793,9 +730,11 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
             case NK_COMMAND_TEXT: {
                 const struct nk_command_text *text = (const struct nk_command_text*)cmd;
-                pntr_color color = pntr_color_from_nk_color(text->foreground);
+                if (text->background.a > 0) {
+                    pntr_draw_rectangle_fill(dst, text->x, text->y, text->w, text->h, pntr_color_from_nk_color(text->background));
+                }
                 pntr_font* font = (pntr_font*)text->font->userdata.ptr;
-                pntr_draw_text(dst, font, (const char*)text->string, text->x, text->y, color);
+                pntr_draw_text(dst, font, (const char*)text->string, text->x, text->y, pntr_color_from_nk_color(text->foreground));
             } break;
 
             case NK_COMMAND_IMAGE: {
@@ -809,15 +748,30 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                     break;
                 }
 
-                //pntr_color tint = pntr_color_from_nk_color(i->col);
+                pntr_color tint = pntr_color_from_nk_color(i->col);
                 pntr_rectangle srcRect = {
                     .x = i->img.region[0],
                     .y = i->img.region[1],
                     .width = i->img.region[2],
                     .height = i->img.region[3]
                 };
-
-                pntr_draw_image_scaled_rec(dst, image, srcRect, i->x, i->y, (float)i->w / (float)srcRect.width, (float)i->h / (float)srcRect.height, 0, 0, PNTR_FILTER_BILINEAR);
+                float scaleX = (float)i->w / (float)srcRect.width;
+                float scaleY = (float)i->h / (float)srcRect.height;
+                if (tint.r == 255 && tint.g == 255 && tint.b == 255 && tint.a == 255) {
+                    pntr_draw_image_scaled_rec(dst, image, srcRect, i->x, i->y, scaleX, scaleY, 0, 0, PNTR_FILTER_BILINEAR);
+                } else if (scaleX == 1.0f && scaleY == 1.0f) {
+                    pntr_draw_image_tint_rec(dst, image, srcRect, i->x, i->y, tint);
+                } else {
+                    pntr_image* sub = pntr_image_from_image(image, srcRect.x, srcRect.y, srcRect.width, srcRect.height);
+                    if (sub != NULL) {
+                        pntr_image* scaled = pntr_image_resize(sub, i->w, i->h, PNTR_FILTER_BILINEAR);
+                        pntr_unload_image(sub);
+                        if (scaled != NULL) {
+                            pntr_draw_image_tint(dst, scaled, i->x, i->y, tint);
+                            pntr_unload_image(scaled);
+                        }
+                    }
+                }
             } break;
 
             case NK_COMMAND_CUSTOM: {
