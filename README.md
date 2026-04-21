@@ -44,10 +44,10 @@ void pntr_unload_nuklear(struct nk_context* ctx);
 void pntr_nuklear_update(struct nk_context* ctx, pntr_app* app);
 void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx);
 struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle rectangle);
-pntr_color pntr_color_from_nk_color(struct nk_color color);
+pntr_color pntr_nk_color_to_color(struct nk_color color);
 struct nk_color pntr_color_to_nk_color(pntr_color color);
-pntr_vector pntr_vector_from_nk_vec2i(struct nk_vec2i vector);
-pntr_color pntr_color_from_nk_colorf(struct nk_colorf color);
+pntr_vector pntr_nk_vec2i_to_vector(struct nk_vec2i vector);
+pntr_color pntr_nk_colorf_to_color(struct nk_colorf color);
 ```
 
 ## License
