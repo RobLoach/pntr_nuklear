@@ -638,17 +638,14 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             case NK_COMMAND_RECT: {
                 const struct nk_command_rect *r = (const struct nk_command_rect *)cmd;
                 pntr_color color = pntr_color_from_nk_color(r->color);
-                int thickness = (int)r->line_thickness;
-                for (int i = 0; i < thickness; i++) {
-                    int w = (int)r->w - i * 2;
-                    int h = (int)r->h - i * 2;
-                    if (w <= 0 || h <= 0) break;
-                    int rounding = NK_MAX(0, (int)r->rounding - i);
-                    pntr_draw_rectangle_rounded(dst,
-                        (int)r->x + i, (int)r->y + i, w, h,
-                        rounding, rounding, rounding, rounding,
-                        color);
-                }
+                int rounding = (int)r->rounding;
+                pntr_draw_rectangle_thick_rounded(dst,
+                    (int)r->x, (int)r->y,
+                    (int)r->w, (int)r->h,
+                    rounding, rounding, rounding, rounding,
+                    (int)r->line_thickness,
+                    color
+                );
             } break;
 
             case NK_COMMAND_RECT_FILLED: {
