@@ -134,20 +134,6 @@ PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const stru
  */
 PNTR_NUKLEAR_API pntr_font* pntr_load_nuklear_font(int fontSize);
 
-/**
- * Draws the nuklear context scaled onto the destination image.
- *
- * The nuklear context should have been configured for the unscaled resolution
- * (dst->width / scale by dst->height / scale).
- *
- * @param dst The destination image to render to.
- * @param ctx The nuklear context to render.
- * @param scale The scale factor (e.g. 2.0f doubles the UI size).
- *
- * @see pntr_draw_nuklear()
- */
-PNTR_NUKLEAR_API void pntr_draw_nuklear_scaled(pntr_image* dst, struct nk_context* ctx, float scale);
-
 #ifdef __cplusplus
 }
 #endif
@@ -892,25 +878,6 @@ PNTR_NUKLEAR_API pntr_font* pntr_load_nuklear_font(int fontSize) {
     pntr_font* font = pntr_load_font_ttf_from_memory(decompressed, decompressedSize, fontSize);
     pntr_unload_memory(decompressed);
     return font;
-}
-
-PNTR_NUKLEAR_API void pntr_draw_nuklear_scaled(pntr_image* dst, struct nk_context* ctx, float scale) {
-    if (dst == NULL || ctx == NULL || scale <= 0.0f) {
-        return;
-    }
-    if (scale == 1.0f) {
-        pntr_draw_nuklear(dst, ctx);
-        return;
-    }
-    int w = (int)((float)dst->width / scale);
-    int h = (int)((float)dst->height / scale);
-    pntr_image* buffer = pntr_gen_image_color(w, h, PNTR_BLANK);
-    if (buffer == NULL) {
-        return;
-    }
-    pntr_draw_nuklear(buffer, ctx);
-    pntr_draw_image_scaled(dst, buffer, 0, 0, scale, scale, 0, 0, PNTR_FILTER_NEARESTNEIGHBOR);
-    pntr_unload_image(buffer);
 }
 
 #ifdef __cplusplus
