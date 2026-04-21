@@ -635,7 +635,6 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
 
             case NK_COMMAND_LINE: {
-                // TODO: Add NK_COMMAND_LINE line thickness
                 const struct nk_command_line *l = (const struct nk_command_line *)cmd;
                 pntr_draw_line_thick(dst,
                     l->begin.x, l->begin.y,
@@ -662,7 +661,6 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
 
             case NK_COMMAND_RECT: {
-                // TODO: NK_COMMAND_RECT Add Rounding to the rectangle
                 const struct nk_command_rect *r = (const struct nk_command_rect *)cmd;
                 pntr_color color = pntr_color_from_nk_color(r->color);
                 // Skip rounded rectangles for now
@@ -682,7 +680,6 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
 
             case NK_COMMAND_RECT_FILLED: {
-                // TODO: NK_COMMAND_RECT Add Rounding to the rectangle filled
                 const struct nk_command_rect_filled *r = (const struct nk_command_rect_filled *)cmd;
                 pntr_color color = pntr_color_from_nk_color(r->color);
                 if (r->rounding == 0) {
@@ -762,27 +759,48 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
 
             case NK_COMMAND_POLYGON: {
-                // TODO: Add line thickness to NK_COMMAND_POLYGON
                 const struct nk_command_polygon *p = (const struct nk_command_polygon*)cmd;
                 pntr_color color = pntr_color_from_nk_color(p->color);
-                for (int i = 1; i < p->point_count; i++) {
-                    pntr_draw_line_thick(dst, p->points[i - 1].x, p->points[i - 1].y, p->points[i].x, p->points[i].y, (int)p->line_thickness, color);
+                #ifndef PNTR_NUKLEAR_MAX_POLYGON_POINTS
+                #define PNTR_NUKLEAR_MAX_POLYGON_POINTS 64
+                #endif
+                int count = (p->point_count < PNTR_NUKLEAR_MAX_POLYGON_POINTS) ? p->point_count : PNTR_NUKLEAR_MAX_POLYGON_POINTS;
+                pntr_vector points[PNTR_NUKLEAR_MAX_POLYGON_POINTS];
+                for (int i = 0; i < count; i++) {
+                    points[i].x = p->points[i].x;
+                    points[i].y = p->points[i].y;
                 }
-                pntr_draw_line_thick(dst, p->points[p->point_count - 1].x, p->points[p->point_count - 1].y, p->points[0].x, p->points[0].y, (int)p->line_thickness, color);
+                pntr_draw_polygon_thick(dst, points, count, (int)p->line_thickness, color);
             } break;
 
             case NK_COMMAND_POLYGON_FILLED: {
                 const struct nk_command_polygon_filled *p = (const struct nk_command_polygon_filled*)cmd;
-                pntr_nuklear_draw_polygon_fill(dst, p->points, p->point_count, pntr_color_from_nk_color(p->color));
+                pntr_color color = pntr_color_from_nk_color(p->color);
+                #ifndef PNTR_NUKLEAR_MAX_POLYGON_POINTS
+                #define PNTR_NUKLEAR_MAX_POLYGON_POINTS 64
+                #endif
+                int count = (p->point_count < PNTR_NUKLEAR_MAX_POLYGON_POINTS) ? p->point_count : PNTR_NUKLEAR_MAX_POLYGON_POINTS;
+                pntr_vector points[PNTR_NUKLEAR_MAX_POLYGON_POINTS];
+                for (int i = 0; i < count; i++) {
+                    points[i].x = p->points[i].x;
+                    points[i].y = p->points[i].y;
+                }
+                pntr_draw_polygon_fill(dst, points, count, color);
             } break;
 
             case NK_COMMAND_POLYLINE: {
-                // TODO: Add line thickness to NK_COMMAND_POLYLINE
                 const struct nk_command_polyline *p = (const struct nk_command_polyline *)cmd;
-                for (int i = 0; i < p->point_count - 1; i++) {
-                    pntr_color color = pntr_color_from_nk_color(p->color);
-                    pntr_draw_line_thick(dst, p->points[i].x, p->points[i].y, p->points[i + 1].x, p->points[i + 1].y, p->line_thickness, color);
+                pntr_color color = pntr_color_from_nk_color(p->color);
+                #ifndef PNTR_NUKLEAR_MAX_POLYGON_POINTS
+                #define PNTR_NUKLEAR_MAX_POLYGON_POINTS 64
+                #endif
+                int count = (p->point_count < PNTR_NUKLEAR_MAX_POLYGON_POINTS) ? p->point_count : PNTR_NUKLEAR_MAX_POLYGON_POINTS;
+                pntr_vector points[PNTR_NUKLEAR_MAX_POLYGON_POINTS];
+                for (int i = 0; i < count; i++) {
+                    points[i].x = p->points[i].x;
+                    points[i].y = p->points[i].y;
                 }
+                pntr_draw_polyline_thick(dst, points, count, (int)p->line_thickness, color);
             } break;
 
             case NK_COMMAND_TEXT: {
