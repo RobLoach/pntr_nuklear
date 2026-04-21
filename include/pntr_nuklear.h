@@ -728,9 +728,12 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
             case NK_COMMAND_TEXT: {
                 const struct nk_command_text *text = (const struct nk_command_text*)cmd;
+                // Don't draw the text background by default.
+                #ifdef PNTR_NUKLEAR_DRAW_TEXT_BACKGROUND
                 if (text->background.a > 0) {
                     pntr_draw_rectangle_fill(dst, text->x, text->y, text->w, text->h, pntr_nk_color_to_color(text->background));
                 }
+                #endif
                 pntr_font* font = (pntr_font*)text->font->userdata.ptr;
                 pntr_draw_text(dst, font, (const char*)text->string, text->x, text->y, pntr_nk_color_to_color(text->foreground));
             } break;
