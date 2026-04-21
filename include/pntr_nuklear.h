@@ -663,31 +663,19 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             case NK_COMMAND_RECT: {
                 const struct nk_command_rect *r = (const struct nk_command_rect *)cmd;
                 pntr_color color = pntr_color_from_nk_color(r->color);
-                // Skip rounded rectangles for now
-                if (r->rounding == 0) {
-                    pntr_draw_rectangle_thick(dst, (int)r->x, (int)r->y, (int)r->w, (int)r->h, (int)r->line_thickness, color);
-                }
-                else {
-                    int rounding = (int)r->rounding;
-                    pntr_draw_rectangle_thick_rounded(dst,
-                        (int)r->x, (int)r->y,
-                        (int)r->w, (int)r->h,
-                        rounding, rounding, rounding, rounding,
-                        (int)r->line_thickness,
-                        color
-                    );
-                }
+                int rounding = (int)r->rounding;
+                pntr_draw_rectangle_thick_rounded(dst,
+                    (int)r->x, (int)r->y,
+                    (int)r->w, (int)r->h,
+                    rounding, rounding, rounding, rounding,
+                    (int)r->line_thickness,
+                    color
+                );
             } break;
 
             case NK_COMMAND_RECT_FILLED: {
                 const struct nk_command_rect_filled *r = (const struct nk_command_rect_filled *)cmd;
-                pntr_color color = pntr_color_from_nk_color(r->color);
-                if (r->rounding == 0) {
-                    pntr_draw_rectangle_fill(dst, r->x, r->y, r->w, r->h, color);
-                }
-                else {
-                    pntr_draw_rectangle_rounded_fill(dst, (int)r->x, (int)r->y, (int)r->w, (int)r->h, (int)r->rounding, color);
-                }
+                pntr_draw_rectangle_rounded_fill(dst, (int)r->x, (int)r->y, (int)r->w, (int)r->h, (int)r->rounding, pntr_color_from_nk_color(r->color));
             } break;
 
             case NK_COMMAND_RECT_MULTI_COLOR: {
