@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.11)
 project(pntr_nuklear
     DESCRIPTION "pntr_nuklear: Nuklear for pntr"
-    HOMEPAGE_URL "https://github.com/robloach/pntr-nuklear"
-    VERSION 0.1.1
+    HOMEPAGE_URL "https://github.com/robloach/pntr_nuklear"
+    VERSION 0.2.0
     LANGUAGES C
 )
 
