@@ -25457,7 +25457,7 @@ nk_option_text(struct nk_context *ctx, const char *text, int len, nk_bool is_act
     layout = win->layout;
 
     state = nk_widget(&bounds, ctx);
-    if (!state) return (int)state;
+    if (!state) return is_active;
     in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     nk_do_toggle(&ctx->last_widget_state, &win->buffer, bounds, &is_active,
         text, len, NK_TOGGLE_OPTION, &style->option, in, style->font, NK_WIDGET_LEFT, NK_TEXT_LEFT);
@@ -25485,7 +25485,7 @@ nk_option_text_align(struct nk_context *ctx, const char *text, int len, nk_bool 
     layout = win->layout;
 
     state = nk_widget(&bounds, ctx);
-    if (!state) return (int)state;
+    if (!state) return is_active;
     in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     nk_do_toggle(&ctx->last_widget_state, &win->buffer, bounds, &is_active,
         text, len, NK_TOGGLE_OPTION, &style->option, in, style->font, widget_alignment, text_alignment);
@@ -25958,7 +25958,7 @@ nk_draw_slider(struct nk_command_buffer *out, nk_flags state,
     bar.h = style->bar_height;
 
     /* filled background bar style */
-    fill.w = visual_cursor->x+ 0.5f*visual_cursor->w - bar.x;
+    fill.w = visual_cursor->x + 0.5f * visual_cursor->w - bar.x;
     fill.x = bar.x;
     fill.y = bar.y;
     fill.h = bar.h;

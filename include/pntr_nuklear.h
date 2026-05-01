@@ -44,6 +44,7 @@
 #define NK_SIN PNTR_SINF
 #define NK_COS PNTR_COSF
 #define NK_SQRT PNTR_SQRTF
+#define NK_BUTTON_TRIGGER_ON_RELEASE
 
 // Include Nuklear
 #ifndef PNTR_NUKLEAR_NUKLEAR_H
