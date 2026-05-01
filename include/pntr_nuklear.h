@@ -148,6 +148,9 @@ PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const stru
 #endif
 
 #define NK_IMPLEMENTATION
+#ifndef NK_BUTTON_TRIGGER_ON_RELEASE
+#define NK_BUTTON_TRIGGER_ON_RELEASE
+#endif
 #include PNTR_NUKLEAR_NUKLEAR_H
 
 #ifdef __cplusplus
