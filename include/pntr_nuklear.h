@@ -124,6 +124,22 @@ PNTR_NUKLEAR_API pntr_color pntr_nk_colorf_to_color(struct nk_colorf color);
 PNTR_NUKLEAR_API struct nk_image pntr_image_nk(pntr_image* image);
 PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const struct nk_vec2i *pnts, int count, pntr_color col);
 
+#ifdef NK_INCLUDE_DEFAULT_FONT
+/**
+ * Loads Nuklear's built-in ProggyClean font as a pntr_font.
+ *
+ * Requires NK_INCLUDE_DEFAULT_FONT and PNTR_ENABLE_TTF to be defined.
+ *
+ * @param fontSize The desired font size in pixels.
+ *
+ * @return The loaded font, or NULL on failure.
+ *
+ * @see pntr_load_nuklear()
+ * @see pntr_unload_font()
+ */
+PNTR_NUKLEAR_API pntr_font* pntr_load_nuklear_font(float fontSize);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
@@ -817,6 +833,36 @@ PNTR_NUKLEAR_API inline pntr_vector pntr_nk_vec2i_to_vector(struct nk_vec2i vect
         vector.y
     };
 }
+
+#ifdef NK_INCLUDE_DEFAULT_FONT
+PNTR_NUKLEAR_API pntr_font* pntr_load_nuklear_font(float fontSize) {
+    // Decode the base85-encoded compressed ProggyClean TTF data
+    int compressed_size = (((int)nk_strlen(nk_proggy_clean_ttf_compressed_data_base85) + 4) / 5) * 4;
+    unsigned char* compressed = (unsigned char*)pntr_load_memory((size_t)compressed_size);
+    if (compressed == NULL) {
+        return NULL;
+    }
+
+    nk_decode_85(compressed, (const unsigned char*)nk_proggy_clean_ttf_compressed_data_base85);
+
+    // Decompress to raw TTF bytes
+    unsigned int decompressed_size = nk_decompress_length(compressed);
+    unsigned char* ttf = (unsigned char*)pntr_load_memory((size_t)decompressed_size);
+    if (ttf == NULL) {
+        pntr_unload_memory(compressed);
+        return NULL;
+    }
+
+    nk_decompress(ttf, compressed, (unsigned int)compressed_size);
+    pntr_unload_memory(compressed);
+
+    // Load the font via pntr's TTF support
+    pntr_font* font = pntr_load_font_ttf_from_memory(ttf, decompressed_size, (int)fontSize);
+    pntr_unload_memory(ttf);
+
+    return font;
+}
+#endif
 
 PNTR_NUKLEAR_API struct nk_image pntr_image_nk(pntr_image* image) {
 	struct nk_image out;
