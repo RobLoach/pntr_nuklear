@@ -3,9 +3,11 @@
 #define PNTR_DISABLE_MATH
 #define PNTR_IMPLEMENTATION
 #define PNTR_ENABLE_DEFAULT_FONT
+#define PNTR_ENABLE_TTF
 #include "pntr.h"
 #include "pntr_assert.h"
 
+#define NK_INCLUDE_DEFAULT_FONT
 #define PNTR_NUKLEAR_IMPLEMENTATION
 #include "pntr_nuklear.h"
 
@@ -53,6 +55,11 @@ int main() {
 
     // Save the image
     PNTR_ASSERT(pntr_save_image(image, "pntr_nuklear_test.png"));
+
+    // pntr_load_nuklear_font
+    pntr_font* nkfont = pntr_load_nuklear_font(13.0f);
+    PNTR_ASSERT(nkfont);
+    pntr_unload_font(nkfont);
 
     // Unload
     pntr_unload_font(font);
