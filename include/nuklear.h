@@ -822,6 +822,19 @@ enum nk_keys {
     NK_KEY_SCROLL_END,
     NK_KEY_SCROLL_DOWN,
     NK_KEY_SCROLL_UP,
+    NK_KEY_ALT,
+    NK_KEY_F1,
+    NK_KEY_F2,
+    NK_KEY_F3,
+    NK_KEY_F4,
+    NK_KEY_F5,
+    NK_KEY_F6,
+    NK_KEY_F7,
+    NK_KEY_F8,
+    NK_KEY_F9,
+    NK_KEY_F10,
+    NK_KEY_F11,
+    NK_KEY_F12,
     NK_KEY_MAX
 };
 enum nk_buttons {
@@ -5820,6 +5833,7 @@ struct nk_window {
  * draw the button with a red color and then you just pop the old color
  * back from the stack:
  *
+ * ```c
  *     nk_style_push_style_item(ctx, &ctx->style.button.normal, nk_style_item_color(nk_rgb(255,0,0)));
  *     nk_style_push_style_item(ctx, &ctx->style.button.hover, nk_style_item_color(nk_rgb(255,0,0)));
  *     nk_style_push_style_item(ctx, &ctx->style.button.active, nk_style_item_color(nk_rgb(255,0,0)));
@@ -5831,6 +5845,7 @@ struct nk_window {
  *     nk_style_pop_style_item(ctx);
  *     nk_style_pop_style_item(ctx);
  *     nk_style_pop_vec2(ctx);
+ * ```
  *
  * Nuklear has a stack for style_items, float properties, vector properties,
  * flags, colors, fonts and for button_behavior. Each has it's own fixed size stack

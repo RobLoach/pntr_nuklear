@@ -293,6 +293,7 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
         // Keyboard
         bool shift = pntr_app_key_down(app, PNTR_APP_KEY_LEFT_SHIFT) || pntr_app_key_down(app, PNTR_APP_KEY_RIGHT_SHIFT);
         bool control = pntr_app_key_down(app, PNTR_APP_KEY_LEFT_CONTROL) || pntr_app_key_down(app, PNTR_APP_KEY_RIGHT_CONTROL);
+        nk_input_key(ctx, NK_KEY_ALT, pntr_app_key_down(app, PNTR_APP_KEY_LEFT_ALT) || pntr_app_key_down(app, PNTR_APP_KEY_RIGHT_ALT));
         nk_input_key(ctx, NK_KEY_SHIFT, shift);
         nk_input_key(ctx, NK_KEY_CTRL, control);
         nk_input_key(ctx, NK_KEY_DEL, pntr_app_key_down(app, PNTR_APP_KEY_DELETE));
@@ -307,8 +308,8 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
         nk_input_key(ctx, NK_KEY_LEFT, pntr_app_key_down(app, PNTR_APP_KEY_LEFT));
         nk_input_key(ctx, NK_KEY_RIGHT, pntr_app_key_down(app, PNTR_APP_KEY_RIGHT));
         //nk_input_key(ctx, NK_KEY_TEXT_INSERT_MODE, pntr_app_key_down(app, PNTR_APP_KEY_ENTER));
-        //nk_input_key(ctx, NK_KEY_TEXT_REPLACE_MODE, pntr_app_key_down(app, PNTR_APP_KEY_ENTER));
-        //nk_input_key(ctx, NK_KEY_TEXT_RESET_MODE, pntr_app_key_down(app, PNTR_APP_KEY_ENTER));
+        //nk_input_key(ctx, NK_KEY_TEXT_REPLACE_MODE, pntr_app_key_down(app, PNTR_APP_KEY_ESCAPE));
+        nk_input_key(ctx, NK_KEY_TEXT_RESET_MODE, pntr_app_key_down(app, PNTR_APP_KEY_ESCAPE));
         nk_input_key(ctx, NK_KEY_TEXT_LINE_START, !control && pntr_app_key_down(app, PNTR_APP_KEY_HOME));
         nk_input_key(ctx, NK_KEY_TEXT_LINE_END, !control && pntr_app_key_down(app, PNTR_APP_KEY_END));
         nk_input_key(ctx, NK_KEY_TEXT_START, control && pntr_app_key_down(app, PNTR_APP_KEY_HOME));
@@ -322,6 +323,19 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
         nk_input_key(ctx, NK_KEY_SCROLL_END, control && pntr_app_key_down(app, PNTR_APP_KEY_PAGE_DOWN));
         nk_input_key(ctx, NK_KEY_SCROLL_DOWN, pntr_app_key_down(app, PNTR_APP_KEY_PAGE_DOWN));
         nk_input_key(ctx, NK_KEY_SCROLL_UP, pntr_app_key_down(app, PNTR_APP_KEY_PAGE_UP));
+
+        nk_input_key(ctx, NK_KEY_F1, pntr_app_key_down(app, PNTR_APP_KEY_F1));
+        nk_input_key(ctx, NK_KEY_F2, pntr_app_key_down(app, PNTR_APP_KEY_F2));
+        nk_input_key(ctx, NK_KEY_F3, pntr_app_key_down(app, PNTR_APP_KEY_F3));
+        nk_input_key(ctx, NK_KEY_F4, pntr_app_key_down(app, PNTR_APP_KEY_F4));
+        nk_input_key(ctx, NK_KEY_F5, pntr_app_key_down(app, PNTR_APP_KEY_F5));
+        nk_input_key(ctx, NK_KEY_F6, pntr_app_key_down(app, PNTR_APP_KEY_F6));
+        nk_input_key(ctx, NK_KEY_F7, pntr_app_key_down(app, PNTR_APP_KEY_F7));
+        nk_input_key(ctx, NK_KEY_F8, pntr_app_key_down(app, PNTR_APP_KEY_F8));
+        nk_input_key(ctx, NK_KEY_F9, pntr_app_key_down(app, PNTR_APP_KEY_F9));
+        nk_input_key(ctx, NK_KEY_F10, pntr_app_key_down(app, PNTR_APP_KEY_F10));
+        nk_input_key(ctx, NK_KEY_F11, pntr_app_key_down(app, PNTR_APP_KEY_F11));
+        nk_input_key(ctx, NK_KEY_F12, pntr_app_key_down(app, PNTR_APP_KEY_F12));
 
         // Keyboard text input
         if (!control) {
