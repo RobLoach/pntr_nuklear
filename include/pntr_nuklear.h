@@ -209,6 +209,58 @@ pntr_nuklear_clipboard_copy(nk_handle usr, const char *text, int len)
 {
     pntr_app_set_clipboard((pntr_app*)usr.ptr, text, len);
 }
+
+/**
+ * Fallback translation from a pntr_app key press to a printable character, assuming a US QWERTY layout.
+ *
+ * Override `PNTR_NUKLEAR_KEY_CHAR(app, key, shift)` before including pntr_nuklear.h to
+ * delegate to a layout-aware platform API (AZERTY, QWERTZ, Dvorak, etc.).
+ * Returns 0 when the key does not produce a printable character.
+ *
+ * @internal
+ */
+static char pntr_nuklear_default_key_char(pntr_app_key key, bool shift) {
+    if (key >= PNTR_APP_KEY_A && key <= PNTR_APP_KEY_Z) {
+        return shift ? (char)key : (char)(key + 32);
+    }
+    if (key >= PNTR_APP_KEY_KP_0 && key <= PNTR_APP_KEY_KP_9) {
+        return (char)(key - PNTR_APP_KEY_KP_0 + '0');
+    }
+    switch (key) {
+        case PNTR_APP_KEY_SPACE:         return ' ';
+        case PNTR_APP_KEY_APOSTROPHE:    return shift ? '"' : '\'';
+        case PNTR_APP_KEY_COMMA:         return shift ? '<' : ',';
+        case PNTR_APP_KEY_MINUS:         return shift ? '_' : '-';
+        case PNTR_APP_KEY_PERIOD:        return shift ? '>' : '.';
+        case PNTR_APP_KEY_SLASH:         return shift ? '?' : '/';
+        case PNTR_APP_KEY_0:             return shift ? ')' : '0';
+        case PNTR_APP_KEY_1:             return shift ? '!' : '1';
+        case PNTR_APP_KEY_2:             return shift ? '@' : '2';
+        case PNTR_APP_KEY_3:             return shift ? '#' : '3';
+        case PNTR_APP_KEY_4:             return shift ? '$' : '4';
+        case PNTR_APP_KEY_5:             return shift ? '%' : '5';
+        case PNTR_APP_KEY_6:             return shift ? '^' : '6';
+        case PNTR_APP_KEY_7:             return shift ? '&' : '7';
+        case PNTR_APP_KEY_8:             return shift ? '*' : '8';
+        case PNTR_APP_KEY_9:             return shift ? '(' : '9';
+        case PNTR_APP_KEY_SEMICOLON:     return shift ? ':' : ';';
+        case PNTR_APP_KEY_EQUAL:         return shift ? '+' : '=';
+        case PNTR_APP_KEY_LEFT_BRACKET:  return shift ? '{' : '[';
+        case PNTR_APP_KEY_BACKSLASH:     return shift ? '|' : '\\';
+        case PNTR_APP_KEY_RIGHT_BRACKET: return shift ? '}' : ']';
+        case PNTR_APP_KEY_GRAVE_ACCENT:  return shift ? '~' : '`';
+        case PNTR_APP_KEY_KP_DECIMAL:    return '.';
+        case PNTR_APP_KEY_KP_DIVIDE:     return '/';
+        case PNTR_APP_KEY_KP_MULTIPLY:   return '*';
+        case PNTR_APP_KEY_KP_SUBTRACT:   return '-';
+        case PNTR_APP_KEY_KP_ADD:        return '+';
+        default:                         return 0;
+    }
+}
+
+#ifndef PNTR_NUKLEAR_KEY_CHAR
+#define PNTR_NUKLEAR_KEY_CHAR(app, key, shift) pntr_nuklear_default_key_char((key), (shift))
+#endif
 #endif
 
 PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
@@ -337,209 +389,16 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
         nk_input_key(ctx, NK_KEY_F11, pntr_app_key_down(app, PNTR_APP_KEY_F11));
         nk_input_key(ctx, NK_KEY_F12, pntr_app_key_down(app, PNTR_APP_KEY_F12));
 
-        // Keyboard text input
+        // Keyboard text input. Translation is layout-aware when
+        // PNTR_NUKLEAR_KEY_CHAR is overridden; otherwise falls back to US QWERTY.
         if (!control) {
-            for (int i = PNTR_APP_KEY_A; i <= PNTR_APP_KEY_Z; i++) {
-                if (pntr_app_key_pressed(app, i)) {
-                    if (!shift) {
-                        nk_input_char(ctx, (char)(i + 32));
-                    }
-                    else {
-                        nk_input_char(ctx, (char)i);
+            for (int k = PNTR_APP_KEY_FIRST; k < PNTR_APP_KEY_LAST; k++) {
+                if (pntr_app_key_pressed(app, (pntr_app_key)k)) {
+                    char c = PNTR_NUKLEAR_KEY_CHAR(app, (pntr_app_key)k, shift);
+                    if (c != 0) {
+                        nk_input_char(ctx, c);
                     }
                 }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_SPACE)) {
-                nk_input_char(ctx, ' ');
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_APOSTROPHE)) {
-                if (shift) {
-                    nk_input_char(ctx, '\"');
-                }
-                else {
-                    nk_input_char(ctx, '\'');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_COMMA)) {
-                if (shift) {
-                    nk_input_char(ctx, '<');
-                }
-                else {
-                    nk_input_char(ctx, ',');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_MINUS)) {
-                if (shift) {
-                    nk_input_char(ctx, '_');
-                }
-                else {
-                    nk_input_char(ctx, '-');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_PERIOD)) {
-                if (shift) {
-                    nk_input_char(ctx, '>');
-                }
-                else {
-                    nk_input_char(ctx, '.');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_SLASH)) {
-                if (shift) {
-                    nk_input_char(ctx, '?');
-                }
-                else {
-                    nk_input_char(ctx, '/');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_0)) {
-                if (shift) {
-                    nk_input_char(ctx, ')');
-                }
-                else {
-                    nk_input_char(ctx, '0');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_1)) {
-                if (shift) {
-                    nk_input_char(ctx, '!');
-                }
-                else {
-                    nk_input_char(ctx, '1');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_2)) {
-                if (shift) {
-                    nk_input_char(ctx, '@');
-                }
-                else {
-                    nk_input_char(ctx, '2');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_3)) {
-                if (shift) {
-                    nk_input_char(ctx, '#');
-                }
-                else {
-                    nk_input_char(ctx, '3');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_4)) {
-                if (shift) {
-                    nk_input_char(ctx, '$');
-                }
-                else {
-                    nk_input_char(ctx, '4');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_5)) {
-                if (shift) {
-                    nk_input_char(ctx, '%');
-                }
-                else {
-                    nk_input_char(ctx, '5');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_6)) {
-                if (shift) {
-                    nk_input_char(ctx, '^');
-                }
-                else {
-                    nk_input_char(ctx, '6');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_7)) {
-                if (shift) {
-                    nk_input_char(ctx, '&');
-                }
-                else {
-                    nk_input_char(ctx, '7');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_8)) {
-                if (shift) {
-                    nk_input_char(ctx, '*');
-                }
-                else {
-                    nk_input_char(ctx, '8');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_9)) {
-                if (shift) {
-                    nk_input_char(ctx, '(');
-                }
-                else {
-                    nk_input_char(ctx, '9');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_SEMICOLON)) {
-                if (shift) {
-                    nk_input_char(ctx, ':');
-                }
-                else {
-                    nk_input_char(ctx, ';');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_EQUAL)) {
-                if (shift) {
-                    nk_input_char(ctx, '+');
-                }
-                else {
-                    nk_input_char(ctx, '=');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_LEFT_BRACKET)) {
-                if (shift) {
-                    nk_input_char(ctx, '{');
-                }
-                else {
-                    nk_input_char(ctx, '[');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_BACKSLASH)) {
-                if (shift) {
-                    nk_input_char(ctx, '|');
-                }
-                else {
-                    nk_input_char(ctx, '\\');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_RIGHT_BRACKET)) {
-                if (shift) {
-                    nk_input_char(ctx, '}');
-                }
-                else {
-                    nk_input_char(ctx, ']');
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_GRAVE_ACCENT)) {
-                if (shift) {
-                    nk_input_char(ctx, '~');
-                }
-                else {
-                    nk_input_char(ctx, '`');
-                }
-            }
-
-            for (int i = PNTR_APP_KEY_KP_0; i <= PNTR_APP_KEY_KP_9; i++) {
-                if (pntr_app_key_pressed(app, i)) {
-                    nk_input_char(ctx, (char)(i - PNTR_APP_KEY_KP_0 + '0'));
-                }
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_KP_DECIMAL)) {
-                nk_input_char(ctx, '.');
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_KP_DIVIDE)) {
-                nk_input_char(ctx, '/');
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_KP_MULTIPLY)) {
-                nk_input_char(ctx, '*');
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_KP_SUBTRACT)) {
-                nk_input_char(ctx, '-');
-            }
-            if (pntr_app_key_pressed(app, PNTR_APP_KEY_KP_ADD)) {
-                nk_input_char(ctx, '+');
             }
         }
 
