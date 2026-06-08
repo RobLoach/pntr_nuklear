@@ -415,6 +415,12 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
     #endif
 }
 
+/**
+ * Maximum number of vertices for polygon and polyline commands.
+ * Define before including pntr_nuklear.h to raise the limit, e.g.:
+ *   #define PNTR_NUKLEAR_MAX_POLYGON_POINTS 128
+ * Debug builds will assert when a polygon exceeds this limit.
+ */
 #ifndef PNTR_NUKLEAR_MAX_POLYGON_POINTS
 #define PNTR_NUKLEAR_MAX_POLYGON_POINTS 64
 #endif
@@ -429,6 +435,7 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
  */
 PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const struct nk_vec2i *pnts, int count, pntr_color col) {
     if (count == 0) return;
+    NK_ASSERT(count <= PNTR_NUKLEAR_MAX_POLYGON_POINTS);
     if (count > PNTR_NUKLEAR_MAX_POLYGON_POINTS)
         count = PNTR_NUKLEAR_MAX_POLYGON_POINTS;
     pntr_vector points[PNTR_NUKLEAR_MAX_POLYGON_POINTS];
@@ -570,6 +577,7 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             case NK_COMMAND_POLYGON: {
                 const struct nk_command_polygon *p = (const struct nk_command_polygon*)cmd;
                 pntr_color color = pntr_nk_color_to_color(p->color);
+                NK_ASSERT(p->point_count <= PNTR_NUKLEAR_MAX_POLYGON_POINTS);
                 int count = (p->point_count < PNTR_NUKLEAR_MAX_POLYGON_POINTS) ? p->point_count : PNTR_NUKLEAR_MAX_POLYGON_POINTS;
                 pntr_vector points[PNTR_NUKLEAR_MAX_POLYGON_POINTS];
                 for (int i = 0; i < count; i++) {
@@ -582,6 +590,7 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             case NK_COMMAND_POLYGON_FILLED: {
                 const struct nk_command_polygon_filled *p = (const struct nk_command_polygon_filled*)cmd;
                 pntr_color color = pntr_nk_color_to_color(p->color);
+                NK_ASSERT(p->point_count <= PNTR_NUKLEAR_MAX_POLYGON_POINTS);
                 int count = (p->point_count < PNTR_NUKLEAR_MAX_POLYGON_POINTS) ? p->point_count : PNTR_NUKLEAR_MAX_POLYGON_POINTS;
                 pntr_vector points[PNTR_NUKLEAR_MAX_POLYGON_POINTS];
                 for (int i = 0; i < count; i++) {
@@ -594,6 +603,7 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             case NK_COMMAND_POLYLINE: {
                 const struct nk_command_polyline *p = (const struct nk_command_polyline *)cmd;
                 pntr_color color = pntr_nk_color_to_color(p->color);
+                NK_ASSERT(p->point_count <= PNTR_NUKLEAR_MAX_POLYGON_POINTS);
                 int count = (p->point_count < PNTR_NUKLEAR_MAX_POLYGON_POINTS) ? p->point_count : PNTR_NUKLEAR_MAX_POLYGON_POINTS;
                 pntr_vector points[PNTR_NUKLEAR_MAX_POLYGON_POINTS];
                 for (int i = 0; i < count; i++) {
