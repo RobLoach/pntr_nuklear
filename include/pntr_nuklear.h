@@ -626,15 +626,24 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                     break;
                 }
 
-                // TODO: Add tint to pntr_draw_image_scaled_rec()
-                //pntr_color tint = pntr_nk_color_to_color(i->col);
+                pntr_color tint = pntr_nk_color_to_color(i->col);
                 pntr_rectangle srcRect = {
                     .x = i->img.region[0],
                     .y = i->img.region[1],
                     .width = i->img.region[2],
                     .height = i->img.region[3]
                 };
-                pntr_draw_image_scaled_rec(dst, image, srcRect, i->x, i->y, (float)i->w / (float)srcRect.width, (float)i->h / (float)srcRect.height, 0, 0, PNTR_FILTER_BILINEAR);
+                if (pntr_color_r(tint) == 255 && pntr_color_g(tint) == 255 && pntr_color_b(tint) == 255 && pntr_color_a(tint) == 255) {
+                    pntr_draw_image_scaled_rec(dst, image, srcRect, i->x, i->y, (float)i->w / (float)srcRect.width, (float)i->h / (float)srcRect.height, 0, 0, PNTR_FILTER_BILINEAR);
+                } else {
+                    pntr_image* tinted = pntr_image_from_image(image, srcRect.x, srcRect.y, srcRect.width, srcRect.height);
+                    if (tinted != NULL) {
+                        pntr_image_color_tint(tinted, tint);
+                        pntr_rectangle fullRect = {0, 0, srcRect.width, srcRect.height};
+                        pntr_draw_image_scaled_rec(dst, tinted, fullRect, i->x, i->y, (float)i->w / (float)srcRect.width, (float)i->h / (float)srcRect.height, 0, 0, PNTR_FILTER_BILINEAR);
+                        pntr_unload_image(tinted);
+                    }
+                }
             } break;
 
             case NK_COMMAND_CUSTOM: {
