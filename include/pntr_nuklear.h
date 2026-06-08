@@ -280,10 +280,11 @@ PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
     // Set up the font, and find the tallest character.
     #define PNTR_LOAD_NUKLEAR_ALPHABET_START (33)
     #define PNTR_LOAD_NUKLEAR_ALPHABET_LEN (172 - PNTR_LOAD_NUKLEAR_ALPHABET_START)
-    char theAlphabet[PNTR_LOAD_NUKLEAR_ALPHABET_LEN];
+    char theAlphabet[PNTR_LOAD_NUKLEAR_ALPHABET_LEN + 1];
     for (int i = 0; i < PNTR_LOAD_NUKLEAR_ALPHABET_LEN; i++) {
         theAlphabet[i] = (char)(i + PNTR_LOAD_NUKLEAR_ALPHABET_START);
     }
+    theAlphabet[PNTR_LOAD_NUKLEAR_ALPHABET_LEN] = '\0';
 
     pntr_vector size = pntr_measure_text_ex(font, theAlphabet, PNTR_LOAD_NUKLEAR_ALPHABET_LEN);
     userFont->height = (float)size.y;
