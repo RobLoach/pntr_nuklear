@@ -261,6 +261,10 @@ static char pntr_nuklear_default_key_char(pntr_app_key key, bool shift) {
 #ifndef PNTR_NUKLEAR_KEY_CHAR
 #define PNTR_NUKLEAR_KEY_CHAR(app, key, shift) pntr_nuklear_default_key_char((key), (shift))
 #endif
+
+#ifndef PNTR_NUKLEAR_DOUBLE_CLICK_TIME
+#define PNTR_NUKLEAR_DOUBLE_CLICK_TIME 0.3f
+#endif
 #endif
 
 PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
@@ -413,6 +417,23 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
         nk_input_button(ctx, NK_BUTTON_RIGHT, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_RIGHT));
         nk_input_button(ctx, NK_BUTTON_X1, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_X1));
         nk_input_button(ctx, NK_BUTTON_X2, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_X2));
+
+        // Double Click
+        {
+            static float dclick_timer = 1.0f;
+            dclick_timer += pntr_app_delta_time(app);
+            if (pntr_app_mouse_button_pressed(app, PNTR_APP_MOUSE_BUTTON_LEFT)) {
+                if (dclick_timer < PNTR_NUKLEAR_DOUBLE_CLICK_TIME) {
+                    nk_input_button(ctx, NK_BUTTON_DOUBLE, mouseX, mouseY, nk_true);
+                    dclick_timer = 1.0f;
+                } else {
+                    dclick_timer = 0.0f;
+                }
+            }
+            if (!pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_LEFT)) {
+                nk_input_button(ctx, NK_BUTTON_DOUBLE, mouseX, mouseY, nk_false);
+            }
+        }
     #endif
 }
 
