@@ -1,5 +1,7 @@
-#include <limits.h> /* INT_MAX */
-#include <time.h> /* struct tm, localtime */
+/*
+#include <limits.h> // INT_MAX
+#include <time.h> // struct tm, localtime
+*/
 
 static int
 overview(struct nk_context *ctx)
