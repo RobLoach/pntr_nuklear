@@ -340,3 +340,4 @@ node_editor(struct nk_context *ctx)
     nk_end(ctx);
     return !nk_window_is_closed(ctx, "NodeEdit");
 }
+
