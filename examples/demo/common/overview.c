@@ -1,5 +1,7 @@
-//#include <limits.h> /* INT_MAX */
-//#include <time.h> /* struct tm, localtime */
+/*
+#include <limits.h> // INT_MAX
+#include <time.h> // struct tm, localtime
+*/
 
 static int
 overview(struct nk_context *ctx)
@@ -191,6 +193,28 @@ overview(struct nk_context *ctx)
                 nk_tree_pop(ctx);
             }
 
+            if (nk_tree_push(ctx, NK_TREE_NODE, "Link", NK_MINIMIZED))
+            {
+                nk_layout_row_dynamic(ctx, 20, 1);
+                if (nk_link_label(ctx, "Default underlined link", NK_TEXT_LEFT))
+                    fprintf(stdout, "Link pressed!\n");
+                if (nk_link_label_hover_underline(ctx, "Underline on hover", NK_TEXT_LEFT))
+                    fprintf(stdout, "Hover-underline link pressed!\n");
+                if (nk_link_label_no_underline(ctx, "No underline", NK_TEXT_LEFT))
+                    fprintf(stdout, "No-underline link pressed!\n");
+                if (nk_link_label_colored(ctx, "Colored link", NK_TEXT_LEFT, nk_rgb(100,160,255)))
+                    fprintf(stdout, "Colored link pressed!\n");
+
+                nk_link_label(ctx, "Left aligned link", NK_TEXT_LEFT);
+                nk_link_label(ctx, "Centered link", NK_TEXT_CENTERED);
+                nk_link_label(ctx, "Right aligned link", NK_TEXT_RIGHT);
+
+                nk_widget_disable_begin(ctx);
+                nk_link_label(ctx, "Disabled link", NK_TEXT_LEFT);
+                nk_widget_disable_end(ctx);
+                nk_tree_pop(ctx);
+            }
+
             if (nk_tree_push(ctx, NK_TREE_NODE, "Button", NK_MINIMIZED))
             {
                 /* Buttons Widgets */
@@ -205,17 +229,26 @@ overview(struct nk_context *ctx)
 
                 nk_layout_row_static(ctx, 25, 25, 8);
                 nk_button_symbol(ctx, NK_SYMBOL_CIRCLE_SOLID);
-                nk_button_symbol(ctx, NK_SYMBOL_CIRCLE_OUTLINE);
                 nk_button_symbol(ctx, NK_SYMBOL_RECT_SOLID);
+                nk_button_symbol(ctx, NK_SYMBOL_CIRCLE_OUTLINE);
                 nk_button_symbol(ctx, NK_SYMBOL_RECT_OUTLINE);
                 nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_UP);
-                nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_UP_OUTLINE);
-                nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_DOWN);
-                nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_DOWN_OUTLINE);
-                nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_LEFT);
-                nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_LEFT_OUTLINE);
                 nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_RIGHT);
+                nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_DOWN);
+                nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_LEFT);
+                nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_UP_OUTLINE);
                 nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_RIGHT_OUTLINE);
+                nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_DOWN_OUTLINE);
+                nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_LEFT_OUTLINE);
+                nk_button_symbol(ctx, NK_SYMBOL_CHEVRON_UP);
+                nk_button_symbol(ctx, NK_SYMBOL_CHEVRON_RIGHT);
+                nk_button_symbol(ctx, NK_SYMBOL_CHEVRON_DOWN);
+                nk_button_symbol(ctx, NK_SYMBOL_CHEVRON_LEFT);
+                nk_button_symbol(ctx, NK_SYMBOL_HAMBURGER);
+                nk_button_symbol(ctx, NK_SYMBOL_X);
+                nk_button_symbol(ctx, NK_SYMBOL_UNDERSCORE);
+                nk_button_symbol(ctx, NK_SYMBOL_PLUS);
+                nk_button_symbol(ctx, NK_SYMBOL_MINUS);
 
                 nk_layout_row_static(ctx, 30, 100, 2);
                 nk_button_symbol_label(ctx, NK_SYMBOL_TRIANGLE_LEFT, "prev", NK_TEXT_RIGHT);
@@ -494,6 +527,97 @@ overview(struct nk_context *ctx)
                     nk_combo_end(ctx);
                 }
 
+                {
+                    static int time_selected = 0;
+                    static int date_selected = 0;
+                    static struct tm sel_time;
+                    static struct tm sel_date;
+                    if (!time_selected || !date_selected) {
+                        /* keep time and date updated if nothing is selected */
+                        time_t cur_time = time(0);
+                        struct tm *n = localtime(&cur_time);
+                        if (!time_selected)
+                            memcpy(&sel_time, n, sizeof(struct tm));
+                        if (!date_selected)
+                            memcpy(&sel_date, n, sizeof(struct tm));
+                    }
+
+                    /* time combobox */
+                    sprintf(buffer, "%02d:%02d:%02d", sel_time.tm_hour, sel_time.tm_min, sel_time.tm_sec);
+                    if (nk_combo_begin_label(ctx, buffer, nk_vec2(200,250))) {
+                        time_selected = 1;
+                        nk_layout_row_dynamic(ctx, 25, 1);
+                        sel_time.tm_sec = nk_propertyi(ctx, "#S:", 0, sel_time.tm_sec, 60, 1, 1);
+                        sel_time.tm_min = nk_propertyi(ctx, "#M:", 0, sel_time.tm_min, 60, 1, 1);
+                        sel_time.tm_hour = nk_propertyi(ctx, "#H:", 0, sel_time.tm_hour, 23, 1, 1);
+                        nk_combo_end(ctx);
+                    }
+
+                    /* date combobox */
+                    sprintf(buffer, "%02d-%02d-%02d", sel_date.tm_mday, sel_date.tm_mon+1, sel_date.tm_year+1900);
+                    if (nk_combo_begin_label(ctx, buffer, nk_vec2(350,400)))
+                    {
+                        int i = 0;
+                        const char *month[] = {"January", "February", "March",
+                            "April", "May", "June", "July", "August", "September",
+                            "October", "November", "December"};
+                        const char *week_days[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
+                        const int month_days[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+                        int year = sel_date.tm_year+1900;
+                        int leap_year = (!(year % 4) && ((year % 100))) || !(year % 400);
+                        int days = (sel_date.tm_mon == 1) ?
+                            month_days[sel_date.tm_mon] + leap_year:
+                            month_days[sel_date.tm_mon];
+
+                        /* header with month and year */
+                        date_selected = 1;
+                        nk_layout_row_begin(ctx, NK_DYNAMIC, 20, 3);
+                        nk_layout_row_push(ctx, 0.05f);
+                        if (nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_LEFT)) {
+                            if (sel_date.tm_mon == 0) {
+                                sel_date.tm_mon = 11;
+                                sel_date.tm_year = NK_MAX(0, sel_date.tm_year-1);
+                            } else sel_date.tm_mon--;
+                        }
+                        nk_layout_row_push(ctx, 0.9f);
+                        sprintf(buffer, "%s %d", month[sel_date.tm_mon], year);
+                        nk_label(ctx, buffer, NK_TEXT_CENTERED);
+                        nk_layout_row_push(ctx, 0.05f);
+                        if (nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_RIGHT)) {
+                            if (sel_date.tm_mon == 11) {
+                                sel_date.tm_mon = 0;
+                                sel_date.tm_year++;
+                            } else sel_date.tm_mon++;
+                        }
+                        nk_layout_row_end(ctx);
+
+                        /* good old week day formula (double because precision) */
+                        {int year_n = (sel_date.tm_mon < 2) ? year-1: year;
+                        int y = year_n % 100;
+                        int c = year_n / 100;
+                        int y4 = (int)((float)y / 4);
+                        int c4 = (int)((float)c / 4);
+                        int m = (int)(2.6 * (double)(((sel_date.tm_mon + 10) % 12) + 1) - 0.2);
+                        int week_day = (((1 + m + y + y4 + c4 - 2 * c) % 7) + 7) % 7;
+
+                        /* weekdays  */
+                        nk_layout_row_dynamic(ctx, 35, 7);
+                        for (i = 0; i < (int)NK_LEN(week_days); ++i)
+                            nk_label(ctx, week_days[i], NK_TEXT_CENTERED);
+
+                        /* days  */
+                        if (week_day > 0) nk_spacing(ctx, week_day);
+                        for (i = 1; i <= days; ++i) {
+                            sprintf(buffer, "%d", i);
+                            if (nk_button_label(ctx, buffer)) {
+                                sel_date.tm_mday = i;
+                                nk_combo_close(ctx);
+                            }
+                        }}
+                        nk_combo_end(ctx);
+                    }
+                }
+
                 nk_tree_pop(ctx);
             }
 
@@ -549,7 +673,7 @@ overview(struct nk_context *ctx)
                 nk_layout_row(ctx, NK_STATIC, 25, 2, ratio);
                 active = nk_edit_string(ctx, NK_EDIT_FIELD|NK_EDIT_SIG_ENTER, text[7], &text_len[7], 64,  nk_filter_ascii);
                 if (nk_button_label(ctx, "Submit") ||
-                    (active & NK_EDIT_COMMITED))
+                    (active & NK_EDIT_COMMITTED))
                 {
                     text[7][text_len[7]] = '\n';
                     text_len[7]++;
@@ -679,6 +803,10 @@ overview(struct nk_context *ctx)
             const struct nk_input *in = &ctx->input;
             struct nk_rect bounds;
 
+            /* seconds */
+            static float delay_timer = 0.0;
+            static nk_bool clicked = nk_false;
+
             /* menu contextual */
             nk_layout_row_static(ctx, 30, 160, 1);
             bounds = nk_widget_bounds(ctx);
@@ -755,6 +883,24 @@ overview(struct nk_context *ctx)
             if (nk_input_is_mouse_hovering_rect(in, bounds)) {
                 nk_tooltip(ctx, "This is a default tooltip");
             }
+
+            bounds = nk_widget_bounds(ctx);
+            nk_label(ctx, "Hover motionless for a default delayed tooltip", NK_TEXT_LEFT);
+            nk_do_tooltip_delay(ctx, "This is a delayed tooltip", bounds, &delay_timer);
+
+            bounds = nk_widget_bounds(ctx);
+            nk_label(ctx, "Hover motionless longer a custom delayed tooltip", NK_TEXT_LEFT);
+            if (nk_input_is_mouse_hovering_still_delay_rect(ctx, bounds, &delay_timer, 1.5)) {
+                nk_tooltip(ctx, "This is a custom delayed tooltip");
+            }
+
+            bounds = nk_widget_bounds(ctx);
+            if (nk_button_label(ctx, "Delayed tooltip with click sensitivity")) {
+                clicked = nk_true;
+            }
+            nk_do_tooltip_delay_clicked(ctx, "disappears when clicked, timer starts when you move again", bounds, &delay_timer, &clicked);
+
+
             bounds = nk_widget_bounds(ctx);
             nk_label(ctx, "Hover for Gnome-like tooltip", NK_TEXT_LEFT);
             if (nk_input_is_mouse_hovering_rect(in, bounds)) {
@@ -773,8 +919,8 @@ overview(struct nk_context *ctx)
                 static double accum_time_seconds = 0.0;
                 const double speed = 3.0, radius = 50.0;
                 struct nk_vec2 offset;
-                offset.x = radius * NK_COS(accum_time_seconds * speed);
-                offset.y = radius * NK_SIN(accum_time_seconds * speed);
+                offset.x = radius * cos(accum_time_seconds * speed);
+                offset.y = radius * sin(accum_time_seconds * speed);
                 nk_tooltip_offset(ctx, "WOW!", NK_MIDDLE_CENTER, offset);
                 accum_time_seconds += (double)(ctx->delta_time_seconds);
             }
@@ -782,7 +928,6 @@ overview(struct nk_context *ctx)
             /* editor for custom tooltip */
             {
                 static char text_buf[64] = {0};
-                static int text_len = 0;
                 static int text_initialized = 0;
                 static struct nk_vec2 offset = {0};
                 static const char* tooltip_positions[] =
@@ -805,29 +950,27 @@ overview(struct nk_context *ctx)
                     const char text_default[] = "you can customize this!";
                     NK_ASSERT(sizeof(text_default) < sizeof(text_buf));
                     memcpy(text_buf, text_default, sizeof(text_default));
-                    text_len = sizeof(text_default) - 1;
                     text_initialized = 1;
                 }
                 bounds = nk_widget_bounds(ctx);
                 nk_label(ctx, "Hover for custom tooltip (you can customize it below)", NK_TEXT_LEFT);
                 if (nk_input_is_mouse_hovering_rect(in, bounds)) {
-                    nk_tooltip_offset(ctx, text_buf, cur_pos, offset);
+                    nk_tooltip_offset(ctx, text_buf, (enum nk_tooltip_pos)cur_pos, offset);
                 }
                 nk_layout_row_dynamic(ctx, 1, 1);
                 nk_rule_horizontal(ctx, nk_white, nk_true);
                 nk_layout_row_dynamic(ctx, 30, 2);
                 nk_label(ctx, "custom tooltip text:", NK_TEXT_LEFT);
-                nk_edit_string(ctx, NK_EDIT_FIELD, text_buf, &text_len, sizeof(text_buf), nk_filter_default);
-                text_buf[text_len] = '\0';  /* TODO: why nk_edit_string is NOT setting this on its own? */
+                nk_edit_string_zero_terminated(ctx, NK_EDIT_SIMPLE, text_buf, sizeof(text_buf), nk_filter_default);
                 nk_layout_row_dynamic(ctx, 30, 1);
                 cur_pos = nk_combo(ctx, tooltip_positions, NK_LEN(tooltip_positions), cur_pos, 25, nk_vec2(200, 200));
 
 
                 nk_layout_row_dynamic(ctx, 30, 2);
                 nk_label(ctx, "custom tooltip offset", NK_TEXT_LEFT);
-                nk_property_float(ctx, "x", -100.0f, &offset.x, 100.0f, 5.0f, 0.5f);
+                nk_property_float(ctx, "#x", -100.0f, &offset.x, 100.0f, 5.0f, 0.5f);
                 nk_label(ctx, "custom tooltip offset", NK_TEXT_LEFT);
-                nk_property_float(ctx, "y", -100.0f, &offset.y, 100.0f, 5.0f, 0.5f);
+                nk_property_float(ctx, "#y", -100.0f, &offset.y, 100.0f, 5.0f, 0.5f);
             }
 
             nk_tree_pop(ctx);
@@ -1354,11 +1497,11 @@ overview(struct nk_context *ctx)
             nk_layout_row_dynamic(ctx, 20, 2);
             for (i = 0; i < NK_BUTTON_MAX; i++) {
                 nk_label(ctx, button_names[i], NK_TEXT_LEFT);
-                if (nk_input_is_mouse_pressed(in, i))
+                if (nk_input_is_mouse_pressed(in, (enum nk_buttons)i))
                     nk_label(ctx, "Pressed", NK_TEXT_LEFT);
-                else if (nk_input_is_mouse_down(in, i))
+                else if (nk_input_is_mouse_down(in, (enum nk_buttons)i))
                     nk_label(ctx, "Down", NK_TEXT_LEFT);
-                else if (nk_input_is_mouse_released(in, i))
+                else if (nk_input_is_mouse_released(in, (enum nk_buttons)i))
                     nk_label(ctx, "Released", NK_TEXT_LEFT);
                 else
                     nk_label(ctx, "Up", NK_TEXT_LEFT);
