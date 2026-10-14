@@ -297,6 +297,16 @@ PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
     struct nk_context* ctx = (struct nk_context*)pntr_load_memory(sizeof(struct nk_context));
     struct nk_user_font* userFont = (struct nk_user_font*)pntr_load_memory(sizeof(struct nk_user_font));
 
+    // Both allocations have to be checked before either is used. userFont is written to
+    // below, and ctx is handed to nk_init(), so a failed allocation would otherwise be
+    // dereferenced rather than reported through the documented NULL return.
+    // pntr_unload_memory() ignores NULL, so whichever one succeeded is still released.
+    if (ctx == NULL || userFont == NULL) {
+        pntr_unload_memory(userFont);
+        pntr_unload_memory(ctx);
+        return NULL;
+    }
+
     // Allocator
     struct nk_allocator allocator;
     allocator.alloc = pntr_nuklear_alloc;
