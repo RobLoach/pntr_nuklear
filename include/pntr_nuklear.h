@@ -506,16 +506,13 @@ PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const stru
  * authoritative. nk_panel_end() pushes nk_null_rect as its "no clipping" signal,
  * which intersects down to exactly the caller's clip.
  *
- * pntr's own rectangle intersection is internal to its implementation, and
- * pntr_nuklear.h may be compiled in a translation unit that only has pntr.h's
- * declarations, so the intersection is done here.
- *
  * @param dst The image to set the clip region of.
  * @param clip The caller's clip region, as captured by pntr_draw_nuklear().
  * @param x The scissor's X coordinate.
  * @param y The scissor's Y coordinate.
  * @param width The scissor's width.
  * @param height The scissor's height.
+ * @see pntr_image_set_clip()
  *
  * @internal
  */
