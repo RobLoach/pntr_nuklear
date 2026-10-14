@@ -72,6 +72,26 @@ Nuklear's own `nk_image_ptr()` works too, and draws the whole image:
 nk_image(ctx, nk_image_ptr(app->image));
 ```
 
+### Nuklear
+
+Nuklear is vendored at [`include/nuklear.h`](include/nuklear.h), and that copy is
+the one that gets compiled. `pntr_nuklear.h` includes it with quotes, so it
+resolves to the sibling file rather than anything on the include path.
+
+To build against your own copy instead, point `PNTR_NUKLEAR_NUKLEAR_H` at it
+before including `pntr_nuklear.h`:
+
+``` c
+#define PNTR_NUKLEAR_NUKLEAR_H "../vendor/nuklear/nuklear.h"
+
+#define PNTR_NUKLEAR_IMPLEMENTATION
+#include "pntr_nuklear.h"
+```
+
+`#define PNTR_NUKLEAR_NUKLEAR_H <nuklear.h>` works too, but only when your own
+include directory comes before this one on the include path, since `include/`
+holds a `nuklear.h` of its own. A path leaves no room for doubt.
+
 ## License
 
 Unless stated otherwise, all works are:

@@ -1,3 +1,20 @@
+/*
+ * ----------------------------------------------------------------------------
+ * Vendored by pntr_nuklear. Not part of upstream Nuklear; re-apply this comment
+ * when bumping the copy below.
+ *
+ * UPSTREAM:
+ *     https://github.com/Immediate-Mode-UI/Nuklear
+ *     commit 9f7750296f176e506c2b24ff55bc24495e2db750
+ *
+ * This is the single source of truth for Nuklear in this project: pntr_nuklear.h
+ * includes "nuklear.h" with quotes, which resolves to this sibling file. Define
+ * PNTR_NUKLEAR_NUKLEAR_H before including pntr_nuklear.h to supply your own copy.
+ *
+ * Note that the VERSION below self-reports v4.13.3, but the commit above is a
+ * post-4.13.3 master snapshot. That mismatch originates upstream.
+ * ----------------------------------------------------------------------------
+ */
 /**
  * Nuklear
  * Single-header ANSI C immediate mode cross-platform GUI library.

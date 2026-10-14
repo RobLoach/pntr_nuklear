@@ -4,7 +4,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
 # Dependencies
 find_package(pntr REQUIRED)
 find_package(pntr_app REQUIRED)
-find_package(Nuklear REQUIRED)
 
 # Iterate through each .c file
 file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
@@ -36,7 +35,6 @@ foreach (example_source ${example_sources})
             pntr_app
             pntr_nuklear
             m
-            Nuklear
         )
         target_compile_definitions(${example_name_raylib} PUBLIC PNTR_APP_RAYLIB)
         list(APPEND example_targets ${example_name_raylib})
@@ -54,7 +52,6 @@ foreach (example_source ${example_sources})
             pntr_app
             pntr_nuklear
             m
-            Nuklear
         )
         target_compile_definitions(${example_name_cli} PUBLIC PNTR_APP_CLI)
         list(APPEND example_targets ${example_name_cli})
