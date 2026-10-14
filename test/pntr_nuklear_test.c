@@ -126,6 +126,79 @@ int main() {
         pntr_unload_image(source);
     }
 
+    // A clip the caller set has to be honoured while drawing too, not just handed
+    // back afterwards, so a GUI cannot paint outside of the viewport it was given.
+    {
+        pntr_image* viewport = pntr_gen_image_color(320, 220, PNTR_RAYWHITE);
+        PNTR_ASSERT(viewport);
+
+        pntr_image_set_clip(viewport, 100, 10, 80, 60);
+
+        // A window wider and taller than the clip, with a button that spans the whole
+        // row, so that both the widget and the window border overflow the clip.
+        if (nk_begin(ctx, "Clipped", nk_rect(10, 10, 300, 200), NK_WINDOW_BORDER)) {
+            nk_layout_row_dynamic(ctx, 30, 1);
+            nk_button_label(ctx, "Clipped");
+        }
+        nk_end(ctx);
+
+        pntr_draw_nuklear(viewport, ctx);
+
+        // Inside the clip, the GUI was drawn.
+        PNTR_ASSERT(pntr_image_get_color(viewport, 140, 25).value != PNTR_RAYWHITE.value);
+        PNTR_ASSERT(pntr_image_get_color(viewport, 120, 60).value != PNTR_RAYWHITE.value);
+
+        // Outside of it, in every direction, nothing was touched. The button row is
+        // drawn after Nuklear's scissor, and the window border after the nk_null_rect
+        // that follows it, so both have to end up restricted to the clip.
+        PNTR_ASSERT(pntr_image_get_color(viewport, 50, 25).value == PNTR_RAYWHITE.value);
+        PNTR_ASSERT(pntr_image_get_color(viewport, 250, 25).value == PNTR_RAYWHITE.value);
+        PNTR_ASSERT(pntr_image_get_color(viewport, 140, 80).value == PNTR_RAYWHITE.value);
+        PNTR_ASSERT(pntr_image_get_color(viewport, 140, 5).value == PNTR_RAYWHITE.value);
+        PNTR_ASSERT(pntr_image_get_color(viewport, 10, 150).value == PNTR_RAYWHITE.value);
+        PNTR_ASSERT(pntr_image_get_color(viewport, 200, 209).value == PNTR_RAYWHITE.value);
+
+        // And the caller's clip is still what it was.
+        pntr_rectangle clip = pntr_image_get_clip(viewport);
+        PNTR_ASSERT(clip.x == 100);
+        PNTR_ASSERT(clip.y == 10);
+        PNTR_ASSERT(clip.width == 80);
+        PNTR_ASSERT(clip.height == 60);
+
+        pntr_unload_image(viewport);
+    }
+
+    // A GUI entirely outside of the caller's clip has to clip to nothing, rather
+    // than to an empty rectangle that pntr_image_set_clip() would have ignored.
+    {
+        pntr_image* viewport = pntr_gen_image_color(320, 220, PNTR_RAYWHITE);
+        PNTR_ASSERT(viewport);
+
+        pntr_image_set_clip(viewport, 200, 150, 50, 50);
+
+        if (nk_begin(ctx, "Outside", nk_rect(0, 0, 100, 100), NK_WINDOW_BORDER)) {
+            nk_layout_row_dynamic(ctx, 30, 1);
+            nk_button_label(ctx, "Outside");
+        }
+        nk_end(ctx);
+
+        pntr_draw_nuklear(viewport, ctx);
+
+        for (int y = 0; y < viewport->height; y++) {
+            for (int x = 0; x < viewport->width; x++) {
+                PNTR_ASSERT(pntr_image_get_color(viewport, x, y).value == PNTR_RAYWHITE.value);
+            }
+        }
+
+        pntr_rectangle clip = pntr_image_get_clip(viewport);
+        PNTR_ASSERT(clip.x == 200);
+        PNTR_ASSERT(clip.y == 150);
+        PNTR_ASSERT(clip.width == 50);
+        PNTR_ASSERT(clip.height == 50);
+
+        pntr_unload_image(viewport);
+    }
+
     // Unload
     pntr_unload_font(font);
     pntr_unload_image(image);

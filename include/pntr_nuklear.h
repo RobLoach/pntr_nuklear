@@ -487,6 +487,49 @@ PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const stru
     pntr_draw_polygon_fill(dst, points, count, col);
 }
 
+/**
+ * Apply a Nuklear scissor to the image, restricted to the clip the caller had set.
+ *
+ * pntr_image_set_clip() only intersects against the image bounds, so handing it a
+ * Nuklear scissor on its own would throw away whatever clip the caller had in place
+ * and let the GUI paint outside of it. Intersecting here keeps the caller's viewport
+ * authoritative. nk_panel_end() pushes nk_null_rect as its "no clipping" signal,
+ * which intersects down to exactly the caller's clip.
+ *
+ * pntr's own rectangle intersection is internal to its implementation, and
+ * pntr_nuklear.h may be compiled in a translation unit that only has pntr.h's
+ * declarations, so the intersection is done here.
+ *
+ * @param dst The image to set the clip region of.
+ * @param clip The caller's clip region, as captured by pntr_draw_nuklear().
+ * @param x The scissor's X coordinate.
+ * @param y The scissor's Y coordinate.
+ * @param width The scissor's width.
+ * @param height The scissor's height.
+ *
+ * @internal
+ */
+static void _pntr_nuklear_set_clip(pntr_image* dst, pntr_rectangle clip, int x, int y, int width, int height) {
+    // Nuklear scissors are built from a short and an unsigned short, and the caller's
+    // clip is already bounded by the image, so neither edge can overflow an int.
+    int left = (x > clip.x) ? x : clip.x;
+    int top = (y > clip.y) ? y : clip.y;
+    int right = (x + width < clip.x + clip.width) ? x + width : clip.x + clip.width;
+    int bottom = (y + height < clip.y + clip.height) ? y + height : clip.y + clip.height;
+
+    if (right <= left || bottom <= top) {
+        // The scissor misses the caller's clip entirely. pntr_image_set_clip()
+        // ignores an empty rectangle, so clip to nothing directly.
+        dst->clip.x = clip.x;
+        dst->clip.y = clip.y;
+        dst->clip.width = 0;
+        dst->clip.height = 0;
+        return;
+    }
+
+    pntr_image_set_clip(dst, left, top, right - left, bottom - top);
+}
+
 PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx) {
     if (dst == NULL || ctx == NULL) {
         return;
@@ -511,7 +554,7 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
             case NK_COMMAND_SCISSOR: {
                 const struct nk_command_scissor *s =(const struct nk_command_scissor*)cmd;
-                pntr_image_set_clip(dst, s->x, s->y, s->w, s->h);
+                _pntr_nuklear_set_clip(dst, clip, s->x, s->y, s->w, s->h);
             } break;
 
             case NK_COMMAND_LINE: {
