@@ -1,4 +1,7 @@
-cmake_minimum_required(VERSION 3.11)
+# 3.14 is the floor for FetchContent_MakeAvailable(), which every cmake/Find*.cmake
+# module uses. 3.24 is the floor actually in force: cmake/Findpntr.cmake needs
+# DOWNLOAD_EXTRACT_TIMESTAMP and test/CMakeLists.txt needs COMPILE_WARNING_AS_ERROR.
+cmake_minimum_required(VERSION 3.24)
 project(pntr_nuklear
     DESCRIPTION "pntr_nuklear: Nuklear for pntr"
     HOMEPAGE_URL "https://github.com/robloach/pntr_nuklear"
