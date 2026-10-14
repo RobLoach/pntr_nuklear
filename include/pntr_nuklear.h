@@ -476,6 +476,11 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
     // Finish processing events as we'll now draw the context.
     nk_input_end(ctx);
 
+    // Nuklear emits scissor commands as it walks its windows, and leaves the last
+    // one in place. Remember the caller's clip region so it can be handed back
+    // once every command has been drawn.
+    pntr_rectangle clip = pntr_image_get_clip(dst);
+
     // Iterate through each drawing command.
     const struct nk_command *cmd;
 
@@ -678,6 +683,9 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             } break;
         }
     }
+
+    // Give the caller their clip region back.
+    pntr_image_set_clip_rec(dst, clip);
 
     nk_clear(ctx);
 
