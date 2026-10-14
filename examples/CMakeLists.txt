@@ -18,6 +18,10 @@ foreach (example_source ${example_sources})
     set(example_source_source ${example_source})
     string(REPLACE ".c" "" example_name ${example_name})
 
+    # Targets built for this example, collected so the standard and warning
+    # flags below are applied identically to every variant.
+    set(example_targets)
+
     # raylib
     if (PNTR_NUKLEAR_BUILD_EXAMPLES_RAYLIB)
         find_package(raylib QUIET)
@@ -35,6 +39,7 @@ foreach (example_source ${example_sources})
             Nuklear
         )
         target_compile_definitions(${example_name_raylib} PUBLIC PNTR_APP_RAYLIB)
+        list(APPEND example_targets ${example_name_raylib})
     endif()
 
     # CLI
@@ -52,8 +57,21 @@ foreach (example_source ${example_sources})
             Nuklear
         )
         target_compile_definitions(${example_name_cli} PUBLIC PNTR_APP_CLI)
-        set_property(TARGET ${example_name_cli} PROPERTY C_STANDARD 99)
+        list(APPEND example_targets ${example_name_cli})
     endif()
+
+    # C99 Standard and warnings, matching the test target. Warnings are not
+    # errors here: the vendored Nuklear demo code should never block a build.
+    foreach (example_target ${example_targets})
+        set_property(TARGET ${example_target} PROPERTY C_STANDARD 99)
+        set_property(TARGET ${example_target} PROPERTY C_STANDARD_REQUIRED TRUE)
+
+        if(MSVC)
+            target_compile_options(${example_target} PRIVATE /W4)
+        else()
+            target_compile_options(${example_target} PRIVATE -Wall -Wextra)
+        endif()
+    endforeach ()
 
 endforeach ()
 

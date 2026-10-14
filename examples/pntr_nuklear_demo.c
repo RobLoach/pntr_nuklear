@@ -28,7 +28,6 @@ typedef struct AppData {
 // Include the examples
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 #ifdef INCLUDE_STYLE
@@ -52,7 +51,7 @@ bool Init(pntr_app* application) {
     AppData* app = (AppData*)pntr_app_userdata(application);
     app->font = pntr_load_font_default();
     app->ctx = pntr_load_nuklear(app->font);
-    app->bg = PNTR_RAYWHITE;
+    app->bg = pntr_get_color(0x141414FF);
 
     #ifdef INCLUDE_STYLE
         #ifdef STYLE_WHITE
@@ -76,7 +75,6 @@ bool Update(pntr_app* application, pntr_image* screen) {
 
     struct nk_context* ctx = app->ctx;
     pntr_nuklear_update(ctx, application);
-    struct nk_colorf bg = pntr_color_to_nk_colorf(app->bg);
 
     #ifdef INCLUDE_CALCULATOR
         calculator(ctx);
@@ -91,7 +89,7 @@ bool Update(pntr_app* application, pntr_image* screen) {
         node_editor(ctx);
     #endif
 
-    pntr_clear_background(screen, pntr_get_color(0x141414FF));
+    pntr_clear_background(screen, app->bg);
     pntr_draw_nuklear(screen, app->ctx);
 
     return true;
@@ -104,6 +102,9 @@ void Close(pntr_app* application) {
 }
 
 pntr_app Main(int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+
     return (pntr_app) {
         .width = 800,
         .height = 600,

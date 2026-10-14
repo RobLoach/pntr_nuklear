@@ -85,6 +85,9 @@ void Close(pntr_app* application) {
 }
 
 pntr_app Main(int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+
     return (pntr_app) {
         .width = 1280,
         .height = 960,
