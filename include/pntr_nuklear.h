@@ -670,7 +670,33 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                     .width = i->img.region[2],
                     .height = i->img.region[3]
                 };
-                pntr_draw_image_scaled_rec(dst, image, srcRect, i->x, i->y, (float)i->w / (float)srcRect.width, (float)i->h / (float)srcRect.height, 0, 0, PNTR_FILTER_BILINEAR, tint);
+
+                // nk_image_ptr(), nk_image_handle() and nk_image_id() all zero the
+                // region, so fall back to the whole source image when it is
+                // degenerate. Without this the region would scale by zero.
+                if (srcRect.width <= 0) {
+                    srcRect.x = 0;
+                    srcRect.width = image->width;
+                }
+                if (srcRect.height <= 0) {
+                    srcRect.y = 0;
+                    srcRect.height = image->height;
+                }
+
+                pntr_rectangle dstRect = {
+                    .x = i->x,
+                    .y = i->y,
+                    .width = i->w,
+                    .height = i->h
+                };
+
+                // There is nothing to resample at a 1:1 scale, so skip the
+                // bilinear pass when the source and destination match.
+                pntr_filter filter = (dstRect.width == srcRect.width && dstRect.height == srcRect.height)
+                    ? PNTR_FILTER_NEARESTNEIGHBOR
+                    : PNTR_FILTER_BILINEAR;
+
+                pntr_draw_image_dest_rec(dst, image, srcRect, dstRect, filter, tint);
             } break;
 
             case NK_COMMAND_CUSTOM: {

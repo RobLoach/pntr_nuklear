@@ -97,6 +97,35 @@ int main() {
         pntr_unload_image(clipped);
     }
 
+    // nk_image_ptr() zeroes the image region, so pntr_draw_nuklear() has to fall
+    // back to the source image's own dimensions rather than scaling by zero.
+    {
+        pntr_image* source = pntr_gen_image_color(4, 4, PNTR_RED);
+        PNTR_ASSERT(source);
+
+        pntr_image* target = pntr_gen_image_color(320, 220, PNTR_BLACK);
+        PNTR_ASSERT(target);
+
+        struct nk_rect bounds = nk_rect(0, 0, 0, 0);
+        if (nk_begin(ctx, "Image", nk_rect(0, 0, 200, 200), NK_WINDOW_BORDER)) {
+            nk_layout_row_static(ctx, 32, 32, 1);
+            bounds = nk_widget_bounds(ctx);
+            nk_image(ctx, nk_image_ptr(source));
+        }
+        nk_end(ctx);
+
+        pntr_draw_nuklear(target, ctx);
+
+        PNTR_ASSERT(bounds.w > 0.0f);
+        PNTR_ASSERT(bounds.h > 0.0f);
+        PNTR_ASSERT(pntr_image_get_color(target,
+            (int)(bounds.x + bounds.w / 2.0f),
+            (int)(bounds.y + bounds.h / 2.0f)).value == PNTR_RED.value);
+
+        pntr_unload_image(target);
+        pntr_unload_image(source);
+    }
+
     // Unload
     pntr_unload_font(font);
     pntr_unload_image(image);

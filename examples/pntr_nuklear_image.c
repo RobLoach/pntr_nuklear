@@ -35,15 +35,20 @@ bool Update(pntr_app* application, pntr_image* screen) {
     }
 
     // GUI
-    if (nk_begin(ctx, "Demo", nk_rect(20, 20, 300, 300),
+    if (nk_begin(ctx, "Demo", nk_rect(20, 20, 370, 300),
         NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|
         NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
     {
-        // Setup the layout
-        nk_layout_row_static(ctx, app->image->height, app->image->width, 1);
+        // Setup the layout: the same image twice, side by side.
+        nk_layout_row_static(ctx, app->image->height, app->image->width, 2);
 
-        // Draw the image
+        // Draw the image using pntr_nuklear's helper, which fills in the image
+        // region from the image's dimensions.
         nk_image(ctx, pntr_image_nk(app->image));
+
+        // Draw it again using Nuklear's own nk_image_ptr(), which leaves the
+        // image region zeroed. Both must render identically.
+        nk_image(ctx, nk_image_ptr(app->image));
     }
     nk_end(ctx);
 
