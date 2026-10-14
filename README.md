@@ -39,15 +39,37 @@ int main() {
 ### API
 
 ``` c
+// Context
 struct nk_context* pntr_load_nuklear(pntr_font* font);
 void pntr_unload_nuklear(struct nk_context* ctx);
 void pntr_nuklear_update(struct nk_context* ctx, pntr_app* app);
 void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx);
+
+// Drawing
+struct nk_image pntr_image_nk(pntr_image* image);
+void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const struct nk_vec2i* pnts, int count, pntr_color col);
+
+// Conversion
 struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle rectangle);
 pntr_color pntr_nk_color_to_color(struct nk_color color);
 struct nk_color pntr_color_to_nk_color(pntr_color color);
-pntr_vector pntr_nk_vec2i_to_vector(struct nk_vec2i vector);
 pntr_color pntr_nk_colorf_to_color(struct nk_colorf color);
+struct nk_colorf pntr_color_to_nk_colorf(pntr_color color);
+pntr_vector pntr_nk_vec2i_to_vector(struct nk_vec2i vector);
+```
+
+### Images
+
+Use `pntr_image_nk()` to hand a `pntr_image` to Nuklear:
+
+``` c
+nk_image(ctx, pntr_image_nk(app->image));
+```
+
+Nuklear's own `nk_image_ptr()` works too, and draws the whole image:
+
+``` c
+nk_image(ctx, nk_image_ptr(app->image));
 ```
 
 ## License

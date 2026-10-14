@@ -7,7 +7,12 @@ find_package(pntr)
 # file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/resources/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/resources/)
 
 # pntr_nuklear_test
-add_executable(pntr_nuklear_test pntr_nuklear_test.c)
+# pntr_nuklear_test_header.c includes pntr_nuklear.h without
+# PNTR_NUKLEAR_IMPLEMENTATION, so a missing public declaration is caught.
+add_executable(pntr_nuklear_test
+    pntr_nuklear_test.c
+    pntr_nuklear_test_header.c
+)
 target_link_libraries(pntr_nuklear_test PUBLIC
     pntr
     pntr_nuklear

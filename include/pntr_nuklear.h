@@ -112,6 +112,17 @@ PNTR_NUKLEAR_API pntr_vector pntr_nk_vec2i_to_vector(struct nk_vec2i vector);
 PNTR_NUKLEAR_API pntr_color pntr_nk_colorf_to_color(struct nk_colorf color);
 
 /**
+ * Converts the given pntr_color to a Nuklear floating point color.
+ *
+ * @param color The color to convert.
+ *
+ * @return The equivalent struct nk_colorf.
+ *
+ * @see pntr_nk_colorf_to_color()
+ */
+PNTR_NUKLEAR_API struct nk_colorf pntr_color_to_nk_colorf(pntr_color color);
+
+/**
  * Creates a Nuklear reference to the given pntr_image for use in nk_image().
  *
  * @code
@@ -122,6 +133,16 @@ PNTR_NUKLEAR_API pntr_color pntr_nk_colorf_to_color(struct nk_colorf color);
  * @see pntr_load_image()
  */
 PNTR_NUKLEAR_API struct nk_image pntr_image_nk(pntr_image* image);
+
+/**
+ * Draw a filled polygon from an array of Nuklear points.
+ *
+ * @param dst The destination image to draw to.
+ * @param pnts The points making up the polygon.
+ * @param count How many points are in the given array. At most
+ *   PNTR_NUKLEAR_MAX_POLYGON_POINTS points are drawn.
+ * @param col The color to fill the polygon with.
+ */
 PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const struct nk_vec2i *pnts, int count, pntr_color col);
 
 #ifdef __cplusplus
@@ -452,8 +473,6 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
  *
  * @see nk_rawfb_fill_polygon()
  * @see https://github.com/Immediate-Mode-UI/Nuklear/blob/master/demo/rawfb/nuklear_rawfb.h
- *
- * @internal
  */
 PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const struct nk_vec2i *pnts, int count, pntr_color col) {
     if (count == 0) return;
