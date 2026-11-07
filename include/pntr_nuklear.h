@@ -127,7 +127,7 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
  * @param ctx The nuklear context to render.
  */
 PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx);
-PNTR_NUKLEAR_API inline struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle rectangle);
+PNTR_NUKLEAR_API struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle rectangle);
 PNTR_NUKLEAR_API pntr_color pntr_nk_color_to_color(struct nk_color color);
 PNTR_NUKLEAR_API struct nk_color pntr_color_to_nk_color(pntr_color color);
 PNTR_NUKLEAR_API pntr_vector pntr_nk_vec2i_to_vector(struct nk_vec2i vector);
@@ -794,9 +794,7 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 custom->callback(dst, (short)(custom->x), (short)(custom->y), (unsigned short)(custom->w), (unsigned short)(custom->h), custom->callback_data);
             } break;
 
-            default: {
-                //TraceLog(LOG_WARNING, "NUKLEAR: Missing implementation %i", cmd->type);
-            } break;
+            default: break;
         }
     }
 
@@ -818,7 +816,7 @@ PNTR_NUKLEAR_API struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle rectang
     );
 }
 
-PNTR_NUKLEAR_API inline pntr_color pntr_nk_color_to_color(struct nk_color color) {
+PNTR_NUKLEAR_API pntr_color pntr_nk_color_to_color(struct nk_color color) {
     return pntr_new_color(color.r, color.g, color.b, color.a);
 }
 
@@ -831,7 +829,7 @@ PNTR_NUKLEAR_API struct nk_color pntr_color_to_nk_color(pntr_color color) {
     );
 }
 
-PNTR_NUKLEAR_API inline pntr_color pntr_nk_colorf_to_color(struct nk_colorf color) {
+PNTR_NUKLEAR_API pntr_color pntr_nk_colorf_to_color(struct nk_colorf color) {
     return pntr_nk_color_to_color(nk_rgba_f(color.r, color.g, color.b, color.a));
 }
 
@@ -839,7 +837,7 @@ PNTR_NUKLEAR_API struct nk_colorf pntr_color_to_nk_colorf(pntr_color color) {
     return nk_color_cf(pntr_color_to_nk_color(color));
 }
 
-PNTR_NUKLEAR_API inline pntr_vector pntr_nk_vec2i_to_vector(struct nk_vec2i vector) {
+PNTR_NUKLEAR_API pntr_vector pntr_nk_vec2i_to_vector(struct nk_vec2i vector) {
     return PNTR_CLITERAL(pntr_vector) {
         vector.x,
         vector.y
