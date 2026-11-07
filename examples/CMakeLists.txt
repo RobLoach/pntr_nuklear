@@ -4,6 +4,15 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
 # Dependencies
 find_package(pntr REQUIRED)
 find_package(pntr_app REQUIRED)
+if (PNTR_NUKLEAR_BUILD_EXAMPLES_RAYLIB)
+    find_package(raylib QUIET)
+endif()
+
+# The math library is separate from libc everywhere but MSVC.
+set(example_libraries pntr pntr_app pntr_nuklear)
+if (NOT MSVC)
+    list(APPEND example_libraries m)
+endif()
 
 # Iterate through each .c file
 file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
@@ -23,19 +32,12 @@ foreach (example_source ${example_sources})
 
     # raylib
     if (PNTR_NUKLEAR_BUILD_EXAMPLES_RAYLIB)
-        find_package(raylib QUIET)
         set(example_name_raylib ${example_name}_raylib)
 
         add_executable(${example_name_raylib}
             ${example_source_source}
         )
-        target_link_libraries(${example_name_raylib} PUBLIC
-            raylib
-            pntr
-            pntr_app
-            pntr_nuklear
-            m
-        )
+        target_link_libraries(${example_name_raylib} PUBLIC raylib ${example_libraries})
         target_compile_definitions(${example_name_raylib} PUBLIC PNTR_APP_RAYLIB)
         list(APPEND example_targets ${example_name_raylib})
     endif()
@@ -47,12 +49,7 @@ foreach (example_source ${example_sources})
         add_executable(${example_name_cli}
             ${example_source_source}
         )
-        target_link_libraries(${example_name_cli} PUBLIC
-            pntr
-            pntr_app
-            pntr_nuklear
-            m
-        )
+        target_link_libraries(${example_name_cli} PUBLIC ${example_libraries})
         target_compile_definitions(${example_name_cli} PUBLIC PNTR_APP_CLI)
         list(APPEND example_targets ${example_name_cli})
     endif()
