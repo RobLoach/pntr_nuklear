@@ -72,7 +72,19 @@
 #ifndef PNTR_NUKLEAR_NUKLEAR_H
 #define PNTR_NUKLEAR_NUKLEAR_H "nuklear.h"
 #endif
+// Nuklear is third-party code, so keep its warnings out of the user's build.
+#if defined(__clang__)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Weverything"
+#elif defined(_MSC_VER)
+    #pragma warning(push, 0)
+#endif
 #include PNTR_NUKLEAR_NUKLEAR_H
+#if defined(__clang__)
+    #pragma clang diagnostic pop
+#elif defined(_MSC_VER)
+    #pragma warning(pop)
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -192,7 +204,19 @@ PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const stru
 #endif
 
 #define NK_IMPLEMENTATION
+// Nuklear is third-party code, so keep its warnings out of the user's build.
+#if defined(__clang__)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Weverything"
+#elif defined(_MSC_VER)
+    #pragma warning(push, 0)
+#endif
 #include PNTR_NUKLEAR_NUKLEAR_H
+#if defined(__clang__)
+    #pragma clang diagnostic pop
+#elif defined(_MSC_VER)
+    #pragma warning(pop)
+#endif
 
 #ifdef __cplusplus
 extern "C" {
