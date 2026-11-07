@@ -40,6 +40,9 @@
 #ifndef NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_FIXED_TYPES
 #endif
+#ifndef NK_VSNPRINTF
+#define NK_VSNPRINTF(s, n, f, a) vsnprintf(s, n, f, a)
+#endif
 #ifndef NK_INCLUDE_COMMAND_USERDATA
 #define NK_INCLUDE_COMMAND_USERDATA
 #endif
