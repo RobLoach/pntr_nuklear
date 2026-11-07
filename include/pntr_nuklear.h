@@ -786,7 +786,10 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
             case NK_COMMAND_CUSTOM: {
                 const struct nk_command_custom *custom = (const struct nk_command_custom *)cmd;
-                custom->callback(NULL, (short)(custom->x), (short)(custom->y), (unsigned short)(custom->w), (unsigned short)(custom->h), custom->callback_data);
+                if (custom->callback == NULL) {
+                    break;
+                }
+                custom->callback(dst, (short)(custom->x), (short)(custom->y), (unsigned short)(custom->w), (unsigned short)(custom->h), custom->callback_data);
             } break;
 
             default: {

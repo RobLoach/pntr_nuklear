@@ -43,6 +43,13 @@ static void pntr_nuklear_test_gui(struct nk_context* ctx) {
     nk_end(ctx);
 }
 
+/**
+ * nk_push_custom() callback that fills its bounds on the given canvas.
+ */
+static void pntr_nuklear_test_custom(void* canvas, short x, short y, unsigned short w, unsigned short h, nk_handle data) {
+    pntr_draw_rectangle_fill((pntr_image*)canvas, x, y, w, h, *(pntr_color*)data.ptr);
+}
+
 int main() {
     pntr_font* font = pntr_load_font_default();
     PNTR_ASSERT(font);
@@ -197,6 +204,26 @@ int main() {
         PNTR_ASSERT(clip.height == 50);
 
         pntr_unload_image(viewport);
+    }
+
+    // Custom commands are handed the destination image as their canvas.
+    {
+        pntr_image* target = pntr_gen_image_color(320, 220, PNTR_BLACK);
+        PNTR_ASSERT(target);
+        pntr_color color = PNTR_GREEN;
+
+        if (nk_begin(ctx, "Custom", nk_rect(0, 0, 200, 200), NK_WINDOW_NO_SCROLLBAR)) {
+            struct nk_command_buffer* canvas = nk_window_get_canvas(ctx);
+            nk_push_custom(canvas, nk_rect(20, 30, 40, 50), pntr_nuklear_test_custom, nk_handle_ptr(&color));
+            nk_push_custom(canvas, nk_rect(0, 0, 10, 10), NULL, nk_handle_ptr(&color));
+        }
+        nk_end(ctx);
+
+        pntr_draw_nuklear(target, ctx);
+
+        PNTR_ASSERT(pntr_image_get_color(target, 40, 55).value == PNTR_GREEN.value);
+
+        pntr_unload_image(target);
     }
 
     // Unload
