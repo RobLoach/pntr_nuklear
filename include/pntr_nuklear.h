@@ -127,7 +127,7 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
  * @param ctx The nuklear context to render.
  */
 PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx);
-PNTR_NUKLEAR_API struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle rectangle);
+PNTR_NUKLEAR_API inline struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle rectangle);
 PNTR_NUKLEAR_API pntr_color pntr_nk_color_to_color(struct nk_color color);
 PNTR_NUKLEAR_API struct nk_color pntr_color_to_nk_color(pntr_color color);
 PNTR_NUKLEAR_API pntr_vector pntr_nk_vec2i_to_vector(struct nk_vec2i vector);
@@ -331,9 +331,10 @@ PNTR_NUKLEAR_API struct nk_context* pntr_load_nuklear(pntr_font* font) {
     allocator.alloc = pntr_nuklear_alloc;
     allocator.free = pntr_nuklear_free;
 
-    // Set up the font, and find the tallest character.
+    // Set up the font, and find the tallest printable ASCII character. Bytes above
+    // 127 are not valid UTF-8 on their own, so they are left out.
     #define PNTR_LOAD_NUKLEAR_ALPHABET_START (33)
-    #define PNTR_LOAD_NUKLEAR_ALPHABET_LEN (172 - PNTR_LOAD_NUKLEAR_ALPHABET_START)
+    #define PNTR_LOAD_NUKLEAR_ALPHABET_LEN (127 - PNTR_LOAD_NUKLEAR_ALPHABET_START)
     char theAlphabet[PNTR_LOAD_NUKLEAR_ALPHABET_LEN + 1];
     for (int i = 0; i < PNTR_LOAD_NUKLEAR_ALPHABET_LEN; i++) {
         theAlphabet[i] = (char)(i + PNTR_LOAD_NUKLEAR_ALPHABET_START);
@@ -407,15 +408,13 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
         nk_input_key(ctx, NK_KEY_ENTER, pntr_app_key_down(app, PNTR_APP_KEY_ENTER) || pntr_app_key_down(app, PNTR_APP_KEY_KP_ENTER));
         nk_input_key(ctx, NK_KEY_TAB, pntr_app_key_down(app, PNTR_APP_KEY_TAB));
         nk_input_key(ctx, NK_KEY_BACKSPACE, pntr_app_key_down(app, PNTR_APP_KEY_BACKSPACE));
-        nk_input_key(ctx, NK_KEY_COPY, control && pntr_app_key_pressed(app, PNTR_APP_KEY_C));
-        nk_input_key(ctx, NK_KEY_CUT, control && pntr_app_key_pressed(app, PNTR_APP_KEY_X));
-        nk_input_key(ctx, NK_KEY_PASTE, control && pntr_app_key_pressed(app, PNTR_APP_KEY_V));
+        nk_input_key(ctx, NK_KEY_COPY, control && pntr_app_key_down(app, PNTR_APP_KEY_C));
+        nk_input_key(ctx, NK_KEY_CUT, control && pntr_app_key_down(app, PNTR_APP_KEY_X));
+        nk_input_key(ctx, NK_KEY_PASTE, control && pntr_app_key_down(app, PNTR_APP_KEY_V));
         nk_input_key(ctx, NK_KEY_UP, pntr_app_key_down(app, PNTR_APP_KEY_UP));
         nk_input_key(ctx, NK_KEY_DOWN, pntr_app_key_down(app, PNTR_APP_KEY_DOWN));
         nk_input_key(ctx, NK_KEY_LEFT, pntr_app_key_down(app, PNTR_APP_KEY_LEFT));
         nk_input_key(ctx, NK_KEY_RIGHT, pntr_app_key_down(app, PNTR_APP_KEY_RIGHT));
-        //nk_input_key(ctx, NK_KEY_TEXT_INSERT_MODE, pntr_app_key_down(app, PNTR_APP_KEY_ENTER));
-        //nk_input_key(ctx, NK_KEY_TEXT_REPLACE_MODE, pntr_app_key_down(app, PNTR_APP_KEY_ESCAPE));
         nk_input_key(ctx, NK_KEY_TEXT_RESET_MODE, pntr_app_key_down(app, PNTR_APP_KEY_ESCAPE));
         nk_input_key(ctx, NK_KEY_TEXT_LINE_START, !control && pntr_app_key_down(app, PNTR_APP_KEY_HOME));
         nk_input_key(ctx, NK_KEY_TEXT_LINE_END, !control && pntr_app_key_down(app, PNTR_APP_KEY_END));
@@ -461,7 +460,7 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
         int mouseX = pntr_app_mouse_x(app);
         int mouseY = pntr_app_mouse_y(app);
         nk_input_motion(ctx, mouseX, mouseY);
-        nk_input_scroll(ctx, nk_vec2(0.0f, pntr_app_mouse_wheel(app)));
+        nk_input_scroll(ctx, nk_vec2(0.0f, (float)pntr_app_mouse_wheel(app)));
         nk_input_button(ctx, NK_BUTTON_LEFT, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_LEFT));
         nk_input_button(ctx, NK_BUTTON_MIDDLE, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_MIDDLE));
         nk_input_button(ctx, NK_BUTTON_RIGHT, mouseX, mouseY, pntr_app_mouse_button_down(app, PNTR_APP_MOUSE_BUTTON_RIGHT));
@@ -810,7 +809,7 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
     nk_input_begin(ctx);
 }
 
-PNTR_NUKLEAR_API inline struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle rectangle) {
+PNTR_NUKLEAR_API struct nk_rect pntr_rectangle_to_nk_rect(pntr_rectangle rectangle) {
     return nk_rect(
         (float)rectangle.x,
         (float)rectangle.y,
