@@ -33,18 +33,37 @@
 #ifndef PNTR_NUKLEAR_H_
 #define PNTR_NUKLEAR_H_
 
-// Set up the nuklear configuration.
+// Set up the nuklear configuration. Each can be overridden by defining it first.
+#ifndef NK_INCLUDE_STANDARD_VARARGS
 #define NK_INCLUDE_STANDARD_VARARGS
+#endif
+#ifndef NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_FIXED_TYPES
-#define NK_VSNPRINTF
+#endif
+#ifndef NK_INCLUDE_COMMAND_USERDATA
 #define NK_INCLUDE_COMMAND_USERDATA
+#endif
+#ifndef NK_INCLUDE_STANDARD_BOOL
 #define NK_INCLUDE_STANDARD_BOOL
+#endif
+#ifndef NK_MEMSET
 #define NK_MEMSET PNTR_MEMSET
+#endif
+#ifndef NK_MEMCPY
 #define NK_MEMCPY PNTR_MEMCPY
+#endif
+#ifndef NK_SIN
 #define NK_SIN PNTR_SINF
+#endif
+#ifndef NK_COS
 #define NK_COS PNTR_COSF
+#endif
+#ifndef NK_SQRT
 #define NK_SQRT PNTR_SQRTF
+#endif
+#ifndef NK_BUTTON_TRIGGER_ON_RELEASE
 #define NK_BUTTON_TRIGGER_ON_RELEASE
+#endif
 
 // Include Nuklear
 #ifndef PNTR_NUKLEAR_NUKLEAR_H
@@ -170,9 +189,6 @@ PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const stru
 #endif
 
 #define NK_IMPLEMENTATION
-#ifndef NK_BUTTON_TRIGGER_ON_RELEASE
-#define NK_BUTTON_TRIGGER_ON_RELEASE
-#endif
 #include PNTR_NUKLEAR_NUKLEAR_H
 
 #ifdef __cplusplus
