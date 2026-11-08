@@ -204,6 +204,12 @@ PNTR_NUKLEAR_API void pntr_nuklear_draw_polygon_fill(pntr_image* dst, const stru
 #endif
 
 #define NK_IMPLEMENTATION
+
+// MSVC reports possibly uninitialized variables while generating code, after any
+// pragma pop, so these stay disabled for Nuklear's implementation.
+#ifdef _MSC_VER
+    #pragma warning(disable: 4701 4703)
+#endif
 // Nuklear is third-party code, so keep its warnings out of the user's build.
 #if defined(__clang__)
     #pragma clang diagnostic push
