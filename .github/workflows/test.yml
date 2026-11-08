@@ -30,11 +30,3 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build --build-config Debug --output-on-failure
-
-      - name: Upload rendered screenshot
-        if: always() && matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: pntr_nuklear_test
-          path: build/test/pntr_nuklear_test.png
-          if-no-files-found: ignore
