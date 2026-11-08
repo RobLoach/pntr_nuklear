@@ -238,6 +238,54 @@ int main(void) {
         pntr_unload_image(target);
     }
 
+    // Circles, ellipses and arcs stay inside of the bounds Nuklear gave them, and arcs
+    // reach the end of their sweep.
+    {
+        pntr_image* target = pntr_gen_image_color(320, 220, PNTR_BLACK);
+        PNTR_ASSERT(target);
+        struct nk_style_item background = ctx->style.window.fixed_background;
+        ctx->style.window.fixed_background = nk_style_item_color(nk_rgb(0, 0, 0));
+
+        if (nk_begin(ctx, "Shapes", nk_rect(0, 0, 320, 220), NK_WINDOW_NO_SCROLLBAR)) {
+            struct nk_command_buffer* canvas = nk_window_get_canvas(ctx);
+            nk_fill_circle(canvas, nk_rect(20, 20, 21, 21), pntr_color_to_nk_color(PNTR_RED));
+            nk_stroke_circle(canvas, nk_rect(60, 20, 20, 20), 1, pntr_color_to_nk_color(PNTR_RED));
+            nk_fill_circle(canvas, nk_rect(100, 20, 30, 20), pntr_color_to_nk_color(PNTR_RED));
+            // Long enough to be capped at PNTR_NUKLEAR_MAX_ARC_SEGMENTS.
+            nk_fill_arc(canvas, 160, 60, 150, 0.0f, NK_PI, pntr_color_to_nk_color(PNTR_GREEN));
+        }
+        nk_end(ctx);
+        pntr_draw_nuklear(target, ctx);
+        ctx->style.window.fixed_background = background;
+
+        // Each shape touches the edges of its bounds, and nothing outside of them.
+        struct { int x, y, w, h; } bounds[] = {{20, 20, 21, 21}, {60, 20, 20, 20}, {100, 20, 30, 20}};
+        for (int i = 0; i < 3; i++) {
+            int minX = 9999, minY = 9999, maxX = -1, maxY = -1;
+            for (int y = bounds[i].y - 3; y < bounds[i].y + bounds[i].h + 3; y++) {
+                for (int x = bounds[i].x - 3; x < bounds[i].x + bounds[i].w + 3; x++) {
+                    if (pntr_image_get_color(target, x, y).value == PNTR_RED.value) {
+                        if (x < minX) minX = x;
+                        if (y < minY) minY = y;
+                        if (x > maxX) maxX = x;
+                        if (y > maxY) maxY = y;
+                    }
+                }
+            }
+            PNTR_ASSERT(minX == bounds[i].x);
+            PNTR_ASSERT(minY == bounds[i].y);
+            PNTR_ASSERT(maxX <= bounds[i].x + bounds[i].w - 1);
+            PNTR_ASSERT(maxY <= bounds[i].y + bounds[i].h - 1);
+            PNTR_ASSERT(maxX >= bounds[i].x + bounds[i].w - 2);
+            PNTR_ASSERT(maxY >= bounds[i].y + bounds[i].h - 2);
+        }
+
+        // The half circle runs from 0 to PI, so it is filled right up to its left end.
+        PNTR_ASSERT(pntr_image_get_color(target, 14, 61).value == PNTR_GREEN.value);
+
+        pntr_unload_image(target);
+    }
+
     // Unload
     pntr_unload_font(font);
     pntr_unload_image(image);
