@@ -251,7 +251,7 @@ int main(void) {
             nk_fill_circle(canvas, nk_rect(20, 20, 21, 21), pntr_color_to_nk_color(PNTR_RED));
             nk_stroke_circle(canvas, nk_rect(60, 20, 20, 20), 1, pntr_color_to_nk_color(PNTR_RED));
             nk_fill_circle(canvas, nk_rect(100, 20, 30, 20), pntr_color_to_nk_color(PNTR_RED));
-            // Long enough to be capped at PNTR_NUKLEAR_MAX_ARC_SEGMENTS.
+            // Long enough to be capped at PNTR_MAX_ARC_SEGMENTS.
             nk_fill_arc(canvas, 160, 60, 150, 0.0f, NK_PI, pntr_color_to_nk_color(PNTR_GREEN));
         }
         nk_end(ctx);

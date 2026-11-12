@@ -99,7 +99,6 @@ Define these before including `pntr_nuklear.h` to change how it behaves:
 | `PNTR_NUKLEAR_KEY_CHAR(app, key, shift)` | US QWERTY | Turns a pressed key into the character typed into text fields. Override it to support other keyboard layouts. Returns `0` for keys that don't type anything. |
 | `PNTR_NUKLEAR_DOUBLE_CLICK_TIME` | `0.3f` | Seconds between two left clicks for them to count as a double click. |
 | `PNTR_NUKLEAR_MAX_POLYGON_POINTS` | `64` | Most points drawn for a filled polygon. Debug builds assert when a polygon has more. |
-| `PNTR_NUKLEAR_MAX_ARC_SEGMENTS` | `64` | Most line segments used to draw an arc. Arcs get about one segment per two pixels along them, up to this many. |
 | `PNTR_NUKLEAR_CURVE_SEGMENTS` | `22` | Line segments used to draw each curve. |
 | `PNTR_NUKLEAR_DRAW_TEXT_BACKGROUND` | Not defined | Fill the background behind text. Nuklear draws widget backgrounds itself, so this is off by default. |
 

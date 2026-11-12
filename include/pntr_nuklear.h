@@ -527,42 +527,6 @@ PNTR_NUKLEAR_API void pntr_nuklear_update(struct nk_context* ctx, PNTR_APP_TYPE*
 #endif
 
 /**
- * Maximum number of line segments used to draw an arc. Arcs get about one segment
- * per two pixels along them, up to this many.
- */
-#ifndef PNTR_NUKLEAR_MAX_ARC_SEGMENTS
-#define PNTR_NUKLEAR_MAX_ARC_SEGMENTS 64
-#endif
-
-/**
- * Draws a Nuklear arc command, either filled or with the given thickness.
- *
- * @internal
- * @private
- */
-static void _pntr_nuklear_draw_arc(pntr_image* dst, int cx, int cy, unsigned short r, const float a[2], int thickness, bool fill, pntr_color color) {
-    float sweep = a[1] - a[0];
-    float length = (float)r * (sweep < 0.0f ? -sweep : sweep);
-    int segments = (int)(length / 2.0f) + 1;
-    if (segments > PNTR_NUKLEAR_MAX_ARC_SEGMENTS) {
-        segments = PNTR_NUKLEAR_MAX_ARC_SEGMENTS;
-    }
-
-    // pntr samples the sweep up to, but not including, its end angle, so carry it
-    // on by one more segment to land on the end.
-    float startAngle = a[0] * 180.0f / PNTR_PI;
-    float step = sweep * 180.0f / PNTR_PI / (float)segments;
-    float endAngle = startAngle + step * (float)(segments + 1);
-
-    if (fill) {
-        pntr_draw_arc_fill(dst, cx, cy, (float)r, startAngle, endAngle, segments + 1, color);
-    }
-    else {
-        pntr_draw_arc_thick(dst, cx, cy, (float)r, startAngle, endAngle, segments + 1, thickness, color);
-    }
-}
-
-/**
  * Draw a filled polygon using Nuklear values.
  *
  * @see nk_rawfb_fill_polygon()
@@ -741,12 +705,16 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
 
             case NK_COMMAND_ARC: {
                 const struct nk_command_arc *a = (const struct nk_command_arc*)cmd;
-                _pntr_nuklear_draw_arc(dst, a->cx, a->cy, a->r, a->a, (int)a->line_thickness, false, pntr_nk_color_to_color(a->color));
+                float startAngle = a->a[0] * 180.0f / PNTR_PI;
+                float endAngle = a->a[1] * 180.0f / PNTR_PI;
+                pntr_draw_arc_thick(dst, a->cx, a->cy, (float)a->r, startAngle, endAngle, 0, (int)a->line_thickness, pntr_nk_color_to_color(a->color));
             } break;
 
             case NK_COMMAND_ARC_FILLED: {
                 const struct nk_command_arc_filled *a = (const struct nk_command_arc_filled*)cmd;
-                _pntr_nuklear_draw_arc(dst, a->cx, a->cy, a->r, a->a, 0, true, pntr_nk_color_to_color(a->color));
+                float startAngle = a->a[0] * 180.0f / PNTR_PI;
+                float endAngle = a->a[1] * 180.0f / PNTR_PI;
+                pntr_draw_arc_fill(dst, a->cx, a->cy, (float)a->r, startAngle, endAngle, 0, pntr_nk_color_to_color(a->color));
             } break;
 
             case NK_COMMAND_TRIANGLE: {
