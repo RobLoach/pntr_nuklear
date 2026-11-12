@@ -670,22 +670,36 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
             case NK_COMMAND_CIRCLE: {
                 const struct nk_command_circle *c = (const struct nk_command_circle *)cmd;
                 pntr_color color = pntr_nk_color_to_color(c->color);
-                if (c->w == c->h) {
-                    pntr_draw_circle_thick(dst, c->x + c->w / 2, c->y + c->h / 2, c->w / 2 + 1, (int)c->line_thickness, color);
+                if (c->w == 0 || c->h == 0) {
+                    break;
+                }
+
+                // pntr spans 2 * radius + 1 pixels, so this keeps it inside of the bounds.
+                int rx = (c->w - 1) / 2;
+                int ry = (c->h - 1) / 2;
+                if (rx == ry) {
+                    pntr_draw_circle_thick(dst, c->x + rx, c->y + ry, rx, (int)c->line_thickness, color);
                 }
                 else {
-                    pntr_draw_ellipse_thick(dst, c->x + c->w / 2, c->y + c->h / 2, c->w / 2 + 1, c->h / 2 + 1, (int)c->line_thickness, color);
+                    pntr_draw_ellipse_thick(dst, c->x + rx, c->y + ry, rx, ry, (int)c->line_thickness, color);
                 }
             } break;
 
             case NK_COMMAND_CIRCLE_FILLED: {
                 const struct nk_command_circle_filled *c = (const struct nk_command_circle_filled *)cmd;
                 pntr_color color = pntr_nk_color_to_color(c->color);
-                if (c->w == c->h) {
-                    pntr_draw_circle_fill(dst, c->x + c->w / 2, c->y + c->h / 2, c->w / 2 + 1, color);
+                if (c->w == 0 || c->h == 0) {
+                    break;
+                }
+
+                // pntr spans 2 * radius + 1 pixels, so this keeps it inside of the bounds.
+                int rx = (c->w - 1) / 2;
+                int ry = (c->h - 1) / 2;
+                if (rx == ry) {
+                    pntr_draw_circle_fill(dst, c->x + rx, c->y + ry, rx, color);
                 }
                 else {
-                    pntr_draw_ellipse_fill(dst, c->x + c->w / 2, c->y + c->h / 2, c->w / 2 + 1, c->h / 2 + 1, color);
+                    pntr_draw_ellipse_fill(dst, c->x + rx, c->y + ry, rx, ry, color);
                 }
             } break;
 
@@ -693,17 +707,14 @@ PNTR_NUKLEAR_API void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx)
                 const struct nk_command_arc *a = (const struct nk_command_arc*)cmd;
                 float startAngle = a->a[0] * 180.0f / PNTR_PI;
                 float endAngle = a->a[1] * 180.0f / PNTR_PI;
-                pntr_draw_arc_thick(dst, a->cx, a->cy, a->r, startAngle, endAngle, a->r * 3, (int)a->line_thickness, pntr_nk_color_to_color(a->color));
+                pntr_draw_arc_thick(dst, a->cx, a->cy, (float)a->r, startAngle, endAngle, 0, (int)a->line_thickness, pntr_nk_color_to_color(a->color));
             } break;
 
             case NK_COMMAND_ARC_FILLED: {
                 const struct nk_command_arc_filled *a = (const struct nk_command_arc_filled*)cmd;
-                pntr_color color = pntr_nk_color_to_color(a->color);
-
                 float startAngle = a->a[0] * 180.0f / PNTR_PI;
                 float endAngle = a->a[1] * 180.0f / PNTR_PI;
-
-                pntr_draw_arc_fill(dst, (int)a->cx, (int)a->cy, a->r, startAngle, endAngle, a->r * 2, color);
+                pntr_draw_arc_fill(dst, a->cx, a->cy, (float)a->r, startAngle, endAngle, 0, pntr_nk_color_to_color(a->color));
             } break;
 
             case NK_COMMAND_TRIANGLE: {
