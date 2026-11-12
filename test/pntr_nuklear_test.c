@@ -3,7 +3,19 @@
 #define PNTR_DISABLE_MATH
 #define PNTR_IMPLEMENTATION
 #define PNTR_ENABLE_DEFAULT_FONT
+// pntr is a dependency, so its warnings are not this test's to fail on.
+#if defined(__clang__)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Weverything"
+#elif defined(_MSC_VER)
+    #pragma warning(push, 0)
+#endif
 #include "pntr.h"
+#if defined(__clang__)
+    #pragma clang diagnostic pop
+#elif defined(_MSC_VER)
+    #pragma warning(pop)
+#endif
 #include "pntr_assert.h"
 
 #define PNTR_NUKLEAR_IMPLEMENTATION
@@ -50,7 +62,7 @@ static void pntr_nuklear_test_custom(void* canvas, short x, short y, unsigned sh
     pntr_draw_rectangle_fill((pntr_image*)canvas, x, y, w, h, *(pntr_color*)data.ptr);
 }
 
-int main() {
+int main(void) {
     pntr_font* font = pntr_load_font_default();
     PNTR_ASSERT(font);
 
