@@ -19,6 +19,7 @@ void pntr_nuklear_test_header(pntr_image* image, pntr_font* font) {
 
     pntr_nuklear_update(ctx, NULL);
     pntr_draw_nuklear(image, ctx);
+    pntr_nuklear_set_scale(ctx, pntr_nuklear_get_scale(ctx));
 
     struct nk_rect rect = pntr_rectangle_to_nk_rect(PNTR_CLITERAL(pntr_rectangle) {0, 0, 1, 1});
     struct nk_color color = pntr_color_to_nk_color(PNTR_WHITE);

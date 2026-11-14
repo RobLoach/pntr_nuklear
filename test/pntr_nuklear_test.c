@@ -238,6 +238,57 @@ int main(void) {
         pntr_unload_image(target);
     }
 
+    // Scaling defaults to 1, ignores nonsense, and draws everything bigger.
+    {
+        PNTR_ASSERT(pntr_nuklear_get_scale(ctx) == 1.0f);
+        PNTR_ASSERT(pntr_nuklear_get_scale(NULL) == 1.0f);
+        pntr_nuklear_set_scale(NULL, 2.0f);
+        pntr_nuklear_set_scale(ctx, 0.0f);
+        PNTR_ASSERT(pntr_nuklear_get_scale(ctx) == 1.0f);
+        pntr_nuklear_set_scale(ctx, -1.0f);
+        PNTR_ASSERT(pntr_nuklear_get_scale(ctx) == 1.0f);
+
+        pntr_nuklear_set_scale(ctx, 2.0f);
+        PNTR_ASSERT(pntr_nuklear_get_scale(ctx) == 2.0f);
+
+        pntr_image* source = pntr_gen_image_color(4, 4, PNTR_RED);
+        PNTR_ASSERT(source);
+        pntr_image* target = pntr_gen_image_color(320, 220, PNTR_BLACK);
+        PNTR_ASSERT(target);
+        pntr_color color = PNTR_GREEN;
+
+        struct nk_rect bounds = nk_rect(0, 0, 0, 0);
+        if (nk_begin(ctx, "Scaled", nk_rect(0, 0, 150, 100), NK_WINDOW_NO_SCROLLBAR)) {
+            nk_layout_row_static(ctx, 32, 32, 1);
+            bounds = nk_widget_bounds(ctx);
+            nk_image(ctx, nk_image_ptr(source));
+            nk_layout_row_dynamic(ctx, 20, 1);
+            nk_label(ctx, "Scaled", NK_TEXT_LEFT);
+            nk_push_custom(nk_window_get_canvas(ctx), nk_rect(100, 60, 10, 10), pntr_nuklear_test_custom, nk_handle_ptr(&color));
+        }
+        nk_end(ctx);
+
+        pntr_draw_nuklear(target, ctx);
+
+        // The image's far corner, past its unscaled bounds, is now covered.
+        PNTR_ASSERT(bounds.w > 0.0f);
+        PNTR_ASSERT(pntr_image_get_color(target,
+            (int)((bounds.x + bounds.w) * 2.0f) - 2,
+            (int)((bounds.y + bounds.h) * 2.0f) - 2).value == PNTR_RED.value);
+
+        // Custom commands get scaled bounds: (100, 60, 10, 10) becomes (200, 120, 20, 20).
+        PNTR_ASSERT(pntr_image_get_color(target, 218, 138).value == PNTR_GREEN.value);
+        PNTR_ASSERT(pntr_image_get_color(target, 198, 118).value != PNTR_GREEN.value);
+
+        // The window fills twice its unscaled size, and no further.
+        PNTR_ASSERT(pntr_image_get_color(target, 290, 190).value != PNTR_BLACK.value);
+        PNTR_ASSERT(pntr_image_get_color(target, 310, 210).value == PNTR_BLACK.value);
+
+        pntr_nuklear_set_scale(ctx, 1.0f);
+        pntr_unload_image(target);
+        pntr_unload_image(source);
+    }
+
     // Unload
     pntr_unload_font(font);
     pntr_unload_image(image);
