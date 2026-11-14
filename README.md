@@ -74,6 +74,8 @@ struct nk_context* pntr_load_nuklear(pntr_font* font);
 void pntr_unload_nuklear(struct nk_context* ctx);
 void pntr_nuklear_update(struct nk_context* ctx, pntr_app* app);
 void pntr_draw_nuklear(pntr_image* dst, struct nk_context* ctx);
+void pntr_nuklear_set_scale(struct nk_context* ctx, float scale);
+float pntr_nuklear_get_scale(struct nk_context* ctx);
 
 // Drawing
 struct nk_image pntr_image_nk(pntr_image* image);
@@ -103,6 +105,16 @@ Define these before including `pntr_nuklear.h` to change how it behaves:
 | `PNTR_NUKLEAR_DRAW_TEXT_BACKGROUND` | Not defined | Fill the background behind text. Nuklear draws widget backgrounds itself, so this is off by default. |
 
 `pntr_nuklear.h` also sets up Nuklear with the following, unless they're already defined: `NK_INCLUDE_STANDARD_VARARGS`, `NK_INCLUDE_FIXED_TYPES`, `NK_INCLUDE_COMMAND_USERDATA`, `NK_INCLUDE_STANDARD_BOOL`, `NK_BUTTON_TRIGGER_ON_RELEASE`, and `NK_MEMSET`, `NK_MEMCPY`, `NK_SIN`, `NK_COS` and `NK_SQRT` mapped to pntr's. When pntr_app is included, `NK_KEYSTATE_BASED_INPUT` is defined too.
+
+### Scaling
+
+Use `pntr_nuklear_set_scale()` to draw the GUI bigger or smaller. Nuklear keeps working in unscaled coordinates, so lay out windows as if the screen were its size divided by the scale. `pntr_nuklear_update()` divides the mouse position by the scale for you; when feeding input yourself, do the same.
+
+``` c
+pntr_nuklear_set_scale(ctx, 2.0f);
+```
+
+Fonts are rasterized at a fixed size, so scaled text is drawn by scaling the rendered text, rather than at a higher resolution.
 
 ### Images
 
